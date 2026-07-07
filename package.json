@@ -1,0 +1,35 @@
+{
+  "name": "pace",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A mobile-first re-entry planning app for students returning from invisible disruptions.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "icons": "node scripts/generate-icons.mjs"
+  },
+  "dependencies": {
+    "dexie": "^4.0.11",
+    "dexie-react-hooks": "^1.1.7",
+    "lucide-react": "^0.525.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.11",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.0",
+    "vite-plugin-pwa": "^1.0.1",
+    "vitest": "^3.2.4"
+  }
+}
