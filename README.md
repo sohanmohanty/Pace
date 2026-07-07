@@ -2,6 +2,8 @@
 
 A mobile-first re-entry planning app for students returning from invisible disruptions.
 
+**Live app:** [pace-student.vercel.app](https://pace-student.vercel.app/)
+
 **Try it in ten seconds:** open the app → "Show me some example tasks" → pick how today feels → get a plan.
 
 ## Problem
@@ -77,18 +79,6 @@ npm run icons      # regenerate PWA icons (zero-dependency PNG generator)
 ```
 
 Deploy the `dist/` folder anywhere static. SPA fallbacks for Vercel (`vercel.json`) and Netlify (`netlify.toml`) are included.
-
-## User Testing
-
-_To be filled in as testing proceeds (target: pilot through NurtureSTEM and school clubs, August–October 2026)._
-
-- Testers: —
-- Feedback responses: —
-- Design iterations: —
-
-## Screenshots
-
-_Coming with the first deployed version._
 
 ## Disclaimer
 
