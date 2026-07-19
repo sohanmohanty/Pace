@@ -1,6 +1,6 @@
 // Zero-dependency PWA icon generator.
 // Draws the Pace mark (three growing bars on a teal rounded square) and
-// encodes PNGs by hand — no native image libraries needed.
+// encodes PNGs by hand, so no native image libraries are needed.
 import { deflateSync } from "node:zlib";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";

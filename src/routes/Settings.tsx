@@ -63,7 +63,7 @@ export function SettingsPage() {
     a.download = `pace-data-${todayISO()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast("Exported — the file is yours");
+    toast("Exported. The file is yours");
   }
 
   async function importFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -74,12 +74,12 @@ export function SettingsPage() {
     try {
       const data: unknown = JSON.parse(await file.text());
       const n = await importData(data);
-      toast(`Imported ${n} item${n === 1 ? "" : "s"} — merged into your data`);
+      toast(`Imported ${n} item${n === 1 ? "" : "s"}, merged into your data`);
     } catch (err) {
       toast(
         err instanceof Error && err.message.startsWith("That file")
           ? err.message
-          : "Couldn't read that file — is it a Pace export?"
+          : "Couldn't read that file. Is it a Pace export?"
       );
     } finally {
       importing.current = false;
@@ -157,7 +157,7 @@ export function SettingsPage() {
             onChange={importFile}
           />
           <p className="text-[0.9rem] text-soft">
-            Import merges a Pace export into this device — nothing here gets deleted. Moving to a
+            Import merges a Pace export into this device. Nothing here gets deleted. Moving to a
             new device? Export there, import here. To fully restore a backup instead, use "Delete
             everything" first.
           </p>
@@ -195,14 +195,14 @@ export function SettingsPage() {
         <SectionTitle>About Pace</SectionTitle>
         <p className="mt-2 text-soft">
           Pace is a planning tool for students returning from disruptions. It is not a medical
-          tool and does not provide medical advice. You never need to explain what happened —
-          to Pace or to anyone else.
+          tool and does not provide medical advice. You never need to explain what happened,
+          not to Pace or to anyone else.
         </p>
         <p className="mt-2 text-soft">Works offline once loaded. Free, open source.</p>
         <p className="mt-3">
           <a
             className="font-medium text-brand-deep underline underline-offset-2"
-            href="mailto:?subject=Pace%20feedback"
+            href="mailto:sohanm4364@gmail.com?subject=Pace%20feedback"
           >
             Send feedback
           </a>

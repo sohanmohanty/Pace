@@ -36,7 +36,7 @@ function titleFor(pathname: string): string {
 /** On navigation: update the title, scroll up, move focus to the page. */
 function RouteFx() {
   const { pathname } = useLocation();
-  // Track the previous path instead of a first-render flag — StrictMode runs
+  // Track the previous path instead of a first-render flag, because StrictMode runs
   // effects twice on mount, which would defeat the flag and focus the page
   // on initial load (drawing a focus ring around the whole content column).
   const prevPath = useRef<string | null>(null);

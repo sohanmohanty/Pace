@@ -20,7 +20,7 @@ export interface Task {
   notes?: string;
   /** Hidden from the task list, kept for stats. */
   archived?: boolean;
-  /** Sample-data flag (1/absent — booleans aren't indexable in IndexedDB). */
+  /** Sample-data flag (1/absent; booleans aren't indexable in IndexedDB). */
   demo?: 1;
   createdAt: string;
   updatedAt: string;
@@ -34,7 +34,7 @@ export interface Subtask {
   difficulty: Level;
   type: SubtaskType;
   status: TaskStatus;
-  /** Position in the sequence — the scheduler respects this. */
+  /** Position in the sequence; the scheduler respects this. */
   order: number;
   demo?: 1;
 }
@@ -67,7 +67,7 @@ export interface PlanAction {
   /** Human-readable factor summary ("Past due · high importance"). */
   why?: string;
   completed: boolean;
-  /** Synthesized chunk/starter — completing it does not complete the subtask. */
+  /** Synthesized chunk/starter; completing it does not complete the subtask. */
   virtual?: boolean;
 }
 

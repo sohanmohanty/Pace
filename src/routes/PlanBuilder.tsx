@@ -81,7 +81,7 @@ export function PlanBuilder() {
   async function usePlan() {
     if (!preview) return;
     await savePlanForToday(preview);
-    toast("Plan ready — one step at a time");
+    toast("Plan ready. One step at a time");
     navigate("/");
   }
 
@@ -91,7 +91,7 @@ export function PlanBuilder() {
         <PageHeader title="Today's plan" />
         <EmptyState
           title="Nothing to plan yet"
-          body="Add what's on your plate first — one line per thing is enough."
+          body="Add what's on your plate first. One line per thing is enough."
         >
           <Button size="lg" onClick={() => navigate("/tasks")}>
             Go to my tasks
@@ -108,7 +108,7 @@ export function PlanBuilder() {
       <div className="lg:col-span-2">
         <PageHeader
           title="Today's plan"
-          subtitle="Built from your tasks and your capacity — nothing else."
+          subtitle="Built from your tasks and your capacity, nothing else."
         />
       </div>
 
@@ -120,7 +120,7 @@ export function PlanBuilder() {
         <Card>
           <ChipRadios
             legend="How much time do you actually have?"
-            hint="Optional — caps the plan."
+            hint="Optional. Caps the plan."
             name="available"
             options={TIME_OPTIONS}
             value={available}
@@ -157,7 +157,7 @@ export function PlanBuilder() {
 
           {preview.actions.length === 0 && (
             <p className="text-soft">
-              Nothing fits this capacity right now — try "No limit" on time, or the smaller
+              Nothing fits this capacity right now. Try "No limit" on time, or the smaller
               version below.
             </p>
           )}

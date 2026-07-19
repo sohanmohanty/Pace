@@ -38,7 +38,7 @@ export function SideNav() {
       </nav>
 
       <p className="mt-auto px-3 pt-6 text-[0.8rem] leading-snug text-soft">
-        Private by design — your data stays on this device.
+        Private by design. Your data stays on this device.
       </p>
     </aside>
   );

@@ -87,7 +87,7 @@ function virtualComm(task: Task): Omit<Candidate, "score" | "factors"> {
 }
 
 /**
- * Step 0 — eligibility. Only the earliest incomplete subtask of each task is a
+ * Step 0: eligibility. Only the earliest incomplete subtask of each task is a
  * candidate (templates encode real sequences); communication steps are exempt;
  * oversized work is chunked or turned into a starter step; at most 2
  * candidates per task; non-positive scores are dropped.
@@ -211,7 +211,7 @@ export function buildCandidates(
 }
 
 /**
- * Step 5 — exact selection via bounded knapsack DP.
+ * Step 5: exact selection via bounded knapsack DP.
  * Maximize total score subject to the minute budget and the action cap.
  * dp[i][c][m] = best score using the first i candidates, ≤c actions, ≤m minutes.
  */
@@ -269,7 +269,7 @@ export interface PlanInput {
   capacity: CapacityLevel;
   multiplier?: number;
   availableMinutes?: number;
-  /** "Make this plan smaller" — one capacity level down (low gets tinier still). */
+  /** "Make this plan smaller": one capacity level down (low gets tinier still). */
   shrink?: boolean;
   /** Injectable for tests. */
   today?: string;
@@ -301,7 +301,7 @@ export function generatePlan(input: PlanInput): BuiltPlan {
   const candidates = buildCandidates(input.tasks, input.subtasks, effCapacity, today);
   let selected = selectCandidates(candidates, budget, params.maxActions);
 
-  // Step 6 — never return nothing while tasks exist.
+  // Step 6: never return nothing while tasks exist.
   if (selected.length === 0 && candidates.length > 0) {
     const smallest = [...candidates].sort((a, b) => a.minutes - b.minutes)[0];
     if (smallest.minutes <= budget) {

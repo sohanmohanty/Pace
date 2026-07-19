@@ -20,7 +20,7 @@ describe("teacher-message composer", () => {
     expect(msg).toContain("Alex");
   });
 
-  it("never requires disclosure — a no-reason message stays neutral", () => {
+  it("never requires disclosure; a no-reason message stays neutral", () => {
     const msg = composeMessage({
       teacherName: "Ms. Park",
       reasonId: "none",

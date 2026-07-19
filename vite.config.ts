@@ -14,7 +14,7 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "icons/apple-touch-icon.png"],
       manifest: {
-        name: "Pace — student re-entry planner",
+        name: "Pace: student re-entry planner",
         short_name: "Pace",
         description:
           "A capacity-aware planner that helps students restart after invisible disruptions. Local-first: your data stays on your device.",

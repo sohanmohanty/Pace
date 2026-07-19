@@ -27,7 +27,7 @@
 /* Base ---------------------------------------------------------------- */
 
 html {
-  font-size: 106.25%; /* 17px base — readable by default */
+  font-size: 106.25%; /* 17px base, readable by default */
   background: var(--color-bg);
 }
 
@@ -91,7 +91,7 @@ html.reduce-motion *::after {
   transition: none !important;
 }
 
-/* Focus — always visible, high contrast. */
+/* Focus: always visible, high contrast. */
 :focus-visible {
   outline: 3px solid var(--color-ink);
   outline-offset: 2px;
@@ -99,7 +99,7 @@ html.reduce-motion *::after {
 }
 
 /* The main region receives focus for the skip link and route changes so
-   screen readers land in the right place — but it is not a control, and a
+   screen readers land in the right place, but it is not a control, and a
    ring around the entire page is noise. Real controls keep their rings. */
 main:focus-visible {
   outline: none;

@@ -16,7 +16,7 @@ export function CapacityPicker({
     <fieldset>
       <legend className="text-[1.15rem] font-semibold tracking-tight">{legend}</legend>
       <p className="mt-0.5 text-[0.9rem] text-soft">
-        There's no wrong answer — the plan adjusts to you.
+        There's no wrong answer. The plan adjusts to you.
       </p>
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {ORDER.map((c) => {

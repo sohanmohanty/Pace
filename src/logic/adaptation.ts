@@ -3,7 +3,7 @@ import type { Reflection } from "../data/types";
 /**
  * The adaptation loop: recent reflections nudge the next plan's minute budget.
  * "lighter" → ×0.85, "heavier" → ×1.12, "same" → decay back toward 1.
- * Last 5 reflections, clamped to 0.5–1.5. Transparent — always shown in the UI.
+ * Last 5 reflections, clamped to 0.5–1.5. Transparent: always shown in the UI.
  */
 export function capacityMultiplier(reflections: Reflection[]): number {
   const recent = [...reflections]

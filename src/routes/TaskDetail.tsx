@@ -64,7 +64,7 @@ export function TaskDetail() {
     setBreaking(true);
     try {
       await addSubtasks(generateSubtasks(task!, selectedTemplate));
-      toast("Broken into steps — edit them freely");
+      toast("Broken into steps. Edit them freely");
     } finally {
       setBreaking(false);
     }
@@ -201,7 +201,7 @@ export function TaskDetail() {
           className="flex items-center gap-2 rounded-2xl border border-line bg-brand-soft p-4 font-medium text-brand-deep"
         >
           <Mail aria-hidden="true" size={19} />
-          Draft a teacher update — no details required
+          Draft a teacher update, no details required
         </Link>
       )}
 
@@ -219,7 +219,7 @@ export function TaskDetail() {
           variant={isDone ? "ghost" : "soft"}
           onClick={async () => {
             await setTaskStatus(task.id, isDone ? "in_progress" : "done");
-            toast(isDone ? "Reopened" : "Task finished — that counts");
+            toast(isDone ? "Reopened" : "Task finished. That counts");
           }}
         >
           {isDone ? "Reopen" : "Mark done"}

@@ -22,7 +22,7 @@ export function AddTask() {
         withSteps = true;
       }
     }
-    toast(withSteps ? "Added — broken into steps" : "Added to your tasks");
+    toast(withSteps ? "Added and broken into steps" : "Added to your tasks");
     navigate("/tasks");
   }
 

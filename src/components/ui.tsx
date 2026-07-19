@@ -81,7 +81,7 @@ export function SectionTitle({ children }: { children: ReactNode }) {
   return <h2 className="text-[1.15rem] font-semibold tracking-tight">{children}</h2>;
 }
 
-/** Labeled field — the label element wraps the control, so no ids needed. */
+/** Labeled field: the label element wraps the control, so no ids needed. */
 export function Field({
   label,
   hint,

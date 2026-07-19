@@ -34,7 +34,7 @@ export function Reflection() {
       nextPlanPreference: pref,
       note: note.trim() || undefined
     });
-    toast("Saved — tomorrow's plan will adapt");
+    toast("Saved. Tomorrow's plan will adapt");
     navigate("/");
   }
 
@@ -75,7 +75,7 @@ export function Reflection() {
           onChange={setPref}
         />
 
-        <Field label="Anything worth remembering?" hint="Optional — what helped you start?">
+        <Field label="Anything worth remembering?" hint="Optional: what helped you start?">
           <textarea
             className="input"
             rows={3}

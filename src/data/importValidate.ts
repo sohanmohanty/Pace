@@ -1,4 +1,4 @@
-// Pure validation for imported export files — no database imports, so it's
+// Pure validation for imported export files: no database imports, so it's
 // unit-testable in isolation. Malformed records are skipped, not fatal; a
 // fundamentally wrong file throws with a human message.
 import type { CheckIn, Plan, Reflection, Settings, Subtask, Task } from "./types";
@@ -47,7 +47,7 @@ export function sanitizeImport(data: unknown): ImportPayload {
   let settings: Settings | undefined;
   const rawSettings = Array.isArray(data.settings) ? data.settings[0] : data.settings;
   if (isRecord(rawSettings) && rawSettings.id === "app") {
-    // Whoever imports is already using the app — never bounce them back
+    // Whoever imports is already using the app, so never bounce them back
     // to onboarding because of a stale flag in the file.
     settings = { ...(rawSettings as unknown as Settings), onboarded: true };
   }

@@ -65,7 +65,7 @@ export const TEMPLATES: Record<TemplateKey, { label: string; steps: TemplateStep
     label: "Message / ask for help",
     steps: [
       { title: "Decide who to contact", minutes: 3, difficulty: 1, type: "starter" },
-      { title: "Pick a reason phrase — no details needed", minutes: 3, difficulty: 1, type: "starter" },
+      { title: "Pick a reason phrase, no details needed", minutes: 3, difficulty: 1, type: "starter" },
       { title: "Write what you need and your plan", minutes: 5, difficulty: 2, type: "communication" },
       { title: "Send it", minutes: 2, difficulty: 1, type: "communication" }
     ]
@@ -77,7 +77,7 @@ export const TEMPLATES: Record<TemplateKey, { label: string; steps: TemplateStep
       { title: "Do the first 15-minute chunk", minutes: 15, difficulty: 3, type: "focus" },
       { title: "Mark anything confusing", minutes: 5, difficulty: 1, type: "review" },
       { title: "Do the next chunk", minutes: 20, difficulty: 3, type: "focus" },
-      { title: "Wrap up — submit or save progress", minutes: 10, difficulty: 2, type: "submit" }
+      { title: "Wrap up: submit or save progress", minutes: 10, difficulty: 2, type: "submit" }
     ]
   }
 };

@@ -1,5 +1,5 @@
 // All date handling is LOCAL-time. `new Date("2026-07-03")` parses as UTC
-// midnight, which is the previous evening in California — every due date
+// midnight, which is the previous evening in California, so every due date
 // would be off by one. These helpers exist so that mistake can't happen.
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -66,7 +66,7 @@ export function formatShort(iso: string): string {
   return `${wd}, ${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
 }
 
-/** Gentle due label. Past dates never say "overdue" — they say "was due". */
+/** Gentle due label. Past dates never say "overdue"; they say "was due". */
 export function formatDueLabel(iso: string, fromISO?: string): string {
   const n = daysUntil(iso, fromISO);
   if (n === 0) return "due today";

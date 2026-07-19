@@ -30,7 +30,7 @@ describe("quick-add parser", () => {
 
   it("parses M/D dates in the current year, allowing past dates", () => {
     const p = parseQuickAdd("makeup lab due 6/20", TODAY);
-    expect(p.dueDate).toBe("2026-06-20"); // overdue on purpose — that's re-entry
+    expect(p.dueDate).toBe("2026-06-20"); // overdue on purpose; that's re-entry
   });
 
   it("parses duration ranges as midpoints", () => {

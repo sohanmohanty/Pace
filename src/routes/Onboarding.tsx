@@ -44,7 +44,7 @@ export function Onboarding() {
             A realistic plan for getting back on track.
           </h1>
           <p className="mt-3 text-soft">
-            Pace helps you restart after falling behind — an absence, a hard stretch, a pile-up.
+            Pace helps you restart after falling behind: an absence, a hard stretch, a pile-up.
             You don't need to explain why. Start with what's on your plate, check in with how
             today feels, and get a plan that matches your actual capacity.
           </p>
@@ -61,7 +61,7 @@ export function Onboarding() {
           <ul className="mt-3 space-y-2 text-soft">
             <li>• No account, no sign-in.</li>
             <li>• Pace never asks for a diagnosis or medical details.</li>
-            <li>• Your data stays on this device — export or delete it anytime.</li>
+            <li>• Your data stays on this device. Export or delete it anytime.</li>
             <li>• No trackers, no analytics.</li>
           </ul>
           <p className="mt-3 text-[0.9rem] text-soft">

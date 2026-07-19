@@ -77,7 +77,7 @@ export function Home() {
       shrink: true
     });
     await savePlanForToday(built);
-    toast("Made it smaller — completed steps kept");
+    toast("Made it smaller. Completed steps kept");
   }
 
   return (
@@ -116,7 +116,7 @@ export function Home() {
               size="lg"
               onClick={async () => {
                 await loadDemoData();
-                toast("Example tasks loaded — try making a plan");
+                toast("Example tasks loaded. Try making a plan");
               }}
             >
               Try Pace with example tasks
@@ -205,7 +205,7 @@ export function Home() {
                 to="/low"
                 className="flex items-center justify-between rounded-2xl border border-line bg-brand-soft p-4 font-medium text-brand-deep"
               >
-                One step at a time — the low-capacity view
+                One step at a time: the low-capacity view
                 <ArrowRight aria-hidden="true" size={20} />
               </Link>
             )}

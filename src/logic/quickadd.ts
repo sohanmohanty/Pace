@@ -1,11 +1,11 @@
-// One-line brain-dump parser. Deterministic, no AI — a live preview shows what
+// One-line brain-dump parser. Deterministic, no AI; a live preview shows what
 // was recognized before saving, so parse mistakes are harmless.
 //
 //   bio lab report due fri ~2h hard #biology @teacher
 //
 // Tokens: due today|tomorrow|mon…sun|M/D|YYYY-MM-DD (also "by …", "due next fri"),
 // durations (~2h, 45m, 2-3h → midpoint), difficulty words (easy|medium|hard|brutal),
-// ! / !! importance, #course, @teacher. Past dates are allowed on purpose —
+// ! / !! importance, #course, @teacher. Past dates are allowed on purpose;
 // overdue work is the whole point of re-entry.
 
 import type { Level } from "../data/types";

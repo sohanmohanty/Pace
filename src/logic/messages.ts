@@ -1,4 +1,4 @@
-// Teacher-message composer. The student never has to disclose details —
+// Teacher-message composer. The student never has to disclose details:
 // reason phrases are neutral, and "no reason line" is always an option.
 // Nothing is sent by Pace; the student copies the text and stays in control.
 
@@ -11,7 +11,7 @@ export interface ReasonOption {
 }
 
 export const REASONS: ReasonOption[] = [
-  { id: "none", label: "No reason line — just the update", phrase: "" },
+  { id: "none", label: "No reason line, just the update", phrase: "" },
   { id: "unexpected", label: "After an unexpected absence", phrase: "after an unexpected absence" },
   { id: "health", label: "After a health-related absence", phrase: "after a health-related absence" },
   { id: "behind", label: "After falling behind recently", phrase: "after falling behind recently" },

@@ -95,7 +95,7 @@ export function TasksPage() {
       <div className="lg:col-span-2">
         <PageHeader
           title="Tasks"
-          subtitle="Everything in one place — no shame attached."
+          subtitle="Everything in one place, no shame attached."
           action={
             <Button onClick={() => navigate("/add")}>
               <Plus aria-hidden="true" size={20} />
@@ -147,7 +147,7 @@ export function TasksPage() {
 
           <Group
             title="Catch-up"
-            hint="past due — these can restart small"
+            hint="past due; these can restart small"
             tasks={overdue}
             subsByTask={subsByTask}
           />
@@ -171,7 +171,7 @@ export function TasksPage() {
           to="/reset"
           className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4 font-medium"
         >
-          Weekly reset — see what changed
+          Weekly reset: see what changed
           <ArrowRight aria-hidden="true" size={20} />
         </Link>
       </aside>
@@ -180,7 +180,7 @@ export function TasksPage() {
         to="/reset"
         className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4 font-medium lg:hidden"
       >
-        Weekly reset — see what changed
+        Weekly reset: see what changed
         <ArrowRight aria-hidden="true" size={20} />
       </Link>
     </div>

@@ -1,4 +1,4 @@
-// Sample tasks — realistic, gently varied, tagged demo:1 so they can be
+// Sample tasks: realistic, gently varied, tagged demo:1 so they can be
 // cleared separately from real data. No teacher names, no medical details.
 import { db } from "./db";
 import type { Subtask, Task } from "./types";
@@ -16,13 +16,13 @@ export async function clearDemoData(): Promise<void> {
     const demoIds = new Set(demoTasks.map((t) => t.id));
     await db.subtasks.filter((s) => s.demo === 1 || demoIds.has(s.taskId)).delete();
     await db.tasks.filter((t) => t.demo === 1).delete();
-    // Drop plans that reference sample tasks — they'd point at nothing.
+    // Drop plans that reference sample tasks, since they'd point at nothing.
     await db.plans.filter((p) => p.actions.some((a) => demoIds.has(a.taskId))).delete();
   });
 }
 
 // Double-taps (or React StrictMode re-runs) must not race clear+insert and
-// duplicate the sample tasks — concurrent calls share one in-flight load.
+// duplicate the sample tasks; concurrent calls share one in-flight load.
 let demoLoadInFlight: Promise<void> | null = null;
 
 export function loadDemoData(): Promise<void> {
@@ -66,7 +66,7 @@ async function doLoadDemoData(): Promise<void> {
   });
 
   const bioLab = t("Biology lab report", "Biology", -3, 120, 4, 5, false, "in_progress");
-  const essay = t("English essay — The Great Gatsby", "English", 3, 170, 4, 4, false);
+  const essay = t("English essay on The Great Gatsby", "English", 3, 170, 4, 4, false);
   const chem = t("Study for stoichiometry retake", "Chemistry", 5, 90, 5, 5, true);
   const math = t("Problem set 5.1–5.3", "Math", 1, 45, 3, 3, false);
   const history = t("Read chapter 12 and take notes", "History", 2, 40, 2, 3, false);

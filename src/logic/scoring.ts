@@ -10,7 +10,7 @@ export interface ScoreFactors {
   daysUntilDue: number | null;
 }
 
-/** Urgency from due date. Overdue work matters most — it is the re-entry pile. */
+/** Urgency from due date. Overdue work matters most; it is the re-entry pile. */
 export function urgencyScore(dueISO: string | undefined, todayISO: string): number {
   if (!dueISO) return 1;
   const days = daysUntil(dueISO, todayISO);
@@ -36,7 +36,7 @@ export function capacityFit(minutes: number, difficulty: number, capacity: Capac
   if (capacity === "high") {
     return 3;
   }
-  // unsure — favor low-pressure first steps
+  // unsure: favor low-pressure first steps
   if (minutes <= 20) return 4;
   return -1;
 }
@@ -97,7 +97,7 @@ export function reasonFor(
 export function whyText(factors: ScoreFactors, kind: SubtaskType | "task"): string {
   const parts: string[] = [];
   if (factors.daysUntilDue !== null) {
-    if (factors.daysUntilDue < 0) parts.push("past due — a small restart counts");
+    if (factors.daysUntilDue < 0) parts.push("past due, a small restart counts");
     else if (factors.daysUntilDue === 0) parts.push("due today");
     else if (factors.daysUntilDue <= 2) parts.push("due very soon");
     else if (factors.daysUntilDue <= 5) parts.push("due this week");

@@ -10,7 +10,7 @@ import {
 } from "../lib/dates";
 
 describe("dates (local-time safety)", () => {
-  it("parses YYYY-MM-DD as local midnight — no UTC off-by-one", () => {
+  it("parses YYYY-MM-DD as local midnight, no UTC off-by-one", () => {
     const d = parseISODate("2026-07-03");
     expect(d.getFullYear()).toBe(2026);
     expect(d.getMonth()).toBe(6);
@@ -47,7 +47,7 @@ describe("dates (local-time safety)", () => {
     expect(weekdayFromToken("xyz")).toBeNull();
   });
 
-  it("uses gentle language for past dates — never 'overdue: N'", () => {
+  it("uses gentle language for past dates, never 'overdue: N'", () => {
     const label = formatDueLabel("2026-06-28", "2026-07-01");
     expect(label).toContain("was due");
     expect(label.toLowerCase()).not.toContain("overdue");

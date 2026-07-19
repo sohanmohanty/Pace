@@ -100,7 +100,7 @@ export function LowCapacity() {
           {current.why && <p className="mt-2 text-[0.95rem] text-soft">{current.why}</p>}
           <div className="mt-6 space-y-2">
             <Button size="lg" onClick={markDone}>
-              Done — that counts
+              Done. That counts
             </Button>
             {incomplete.length > 1 && (
               <Button variant="ghost" size="lg" onClick={() => setSkip((s) => s + 1)}>

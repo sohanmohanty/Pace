@@ -17,7 +17,7 @@ export function QuickAdd() {
     [text]
   );
 
-  // A held-down Enter key auto-repeats form submits — without a guard that
+  // A held-down Enter key auto-repeats form submits; without a guard that
   // creates the same task several times.
   const inFlight = useRef(false);
 
@@ -48,7 +48,7 @@ export function QuickAdd() {
       <label className="block">
         <span className="font-medium">Quick add</span>
         <span className="mt-0.5 block text-[0.9rem] text-soft">
-          One line is enough — try “essay due fri ~2h #english”
+          One line is enough. Try “essay due fri ~2h #english”
         </span>
         <div className="mt-1.5 flex gap-2">
           <input

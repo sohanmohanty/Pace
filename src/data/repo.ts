@@ -24,7 +24,7 @@ export async function getSettings(): Promise<Settings> {
 }
 
 export async function updateSettings(patch: Partial<Settings>): Promise<void> {
-  // Read-modify-write inside one transaction — concurrent toggles can't clobber
+  // Read-modify-write inside one transaction, so concurrent toggles can't clobber
   // each other.
   await db.transaction("rw", db.settings, async () => {
     const current = (await db.settings.get("app")) ?? DEFAULT_SETTINGS;
@@ -232,11 +232,11 @@ async function applyPlanActionCompletion(
   await db.plans.update(plan.id, { actions });
 
   const task = await db.tasks.get(action.taskId);
-  if (!task) return; // task was deleted (e.g. sample data cleared) — plan still renders
+  if (!task) return; // task was deleted (e.g. sample data cleared); plan still renders
 
   if (action.virtual) {
     if (action.reason === "communication" && !action.subtaskId) {
-      // Sending the update is the communication — the flag turns off.
+      // Sending the update is the communication; the flag turns off.
       await db.tasks.update(task.id, { needsCommunication: !nowCompleted, updatedAt: now() });
     }
     if (nowCompleted && task.status === "not_started") {
@@ -279,7 +279,7 @@ export async function togglePlanAction(planId: string, actionId: string): Promis
 }
 
 /**
- * Idempotent "mark done" — a double-tap on a Done button must never
+ * Idempotent "mark done": a double-tap on a Done button must never
  * un-complete the step the way a second toggle would.
  */
 export async function completePlanAction(planId: string, actionId: string): Promise<void> {
@@ -337,7 +337,7 @@ export async function exportAll(): Promise<Record<string, unknown>> {
  * Merge a Pace export file into this device. Nothing is deleted: unrelated
  * records are untouched, records with the same id are updated to the file's
  * version, and new records are added. Validation happens before any write,
- * and all writes share one transaction — a bad file can't half-import.
+ * and all writes share one transaction, so a bad file can't half-import.
  */
 export async function importData(raw: unknown): Promise<number> {
   const payload = sanitizeImport(raw);

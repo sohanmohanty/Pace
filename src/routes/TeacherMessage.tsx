@@ -81,9 +81,9 @@ export function TeacherMessage() {
   async function copy() {
     try {
       await navigator.clipboard.writeText(message);
-      toast("Copied — paste it into email or your LMS");
+      toast("Copied. Paste it into email or your LMS");
     } catch {
-      toast("Couldn't copy automatically — select the text instead");
+      toast("Couldn't copy automatically. Select the text instead");
     }
   }
 
@@ -182,7 +182,7 @@ export function TeacherMessage() {
           </div>
         </fieldset>
 
-        <Field label="What you can commit to" hint="Optional — a plan builds trust.">
+        <Field label="What you can commit to" hint="Optional. A plan builds trust.">
           <textarea
             className="input"
             rows={2}
@@ -233,7 +233,7 @@ export function TeacherMessage() {
           </a>
         </div>
         <p className="mt-3 text-[0.9rem] text-soft">
-          Pace never sends anything for you — you stay in control.
+          Pace never sends anything for you. You stay in control.
         </p>
       </Card>
     </div>
