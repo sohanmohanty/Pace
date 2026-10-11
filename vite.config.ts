@@ -98,7 +98,9 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       devApi(),
       VitePWA({
-        registerType: "autoUpdate",
+        // I use "prompt" registration so main.tsx controls when pending updates
+        // apply. It waits for the tab to be hidden before requesting a reload.
+        registerType: "prompt",
         includeAssets: ["favicon.ico", "favicon.svg", "icons/apple-touch-icon.png"],
         workbox: {
           // Never let the service worker answer for the API or the OAuth callback.

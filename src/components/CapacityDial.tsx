@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Label, Slider, SliderOutput, SliderThumb, SliderTrack } from "react-aria-components";
-import { DIAL_FOR, dialLabel } from "../logic/capacity";
+import { dialLabel } from "../logic/capacity";
 
 /**
  * Continuous 0 to 100 capacity slider. React Aria handles keyboard, touch,
@@ -8,10 +8,13 @@ import { DIAL_FOR, dialLabel } from "../logic/capacity";
  * value settles.
  */
 
+// I place the shortcuts symmetrically beneath the track, within their capacity
+// bands: low at 30 or below, medium through 62, and high above 62.
+// Selecting a shortcut sets the dial to its position.
 const REGIONS: { at: number; label: string }[] = [
-  { at: DIAL_FOR.low, label: "Low" },
-  { at: DIAL_FOR.medium, label: "Medium" },
-  { at: DIAL_FOR.high, label: "High" }
+  { at: 15, label: "Low" },
+  { at: 50, label: "Medium" },
+  { at: 85, label: "High" }
 ];
 
 export function CapacityDial({
