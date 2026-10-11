@@ -154,7 +154,7 @@ export function Landing() {
 
       <footer className="mt-20 flex flex-wrap items-center justify-between gap-4 border-t border-line py-8 text-[0.9rem] text-soft">
         <span className="inline-flex items-center gap-2">
-          <Logo size={20} /> Pace is free, open source, and not a medical tool.
+          <Logo size={20} /> I provide Pace free of charge and release it as open source.
         </span>
         <span className="flex gap-4">
           <a className="hover:text-ink" href="/privacy.html">

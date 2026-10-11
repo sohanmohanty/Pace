@@ -51,9 +51,6 @@ export function Onboarding() {
             </li>
             <li>• No trackers. Export or delete everything anytime.</li>
           </ul>
-          <p className="text-[0.9rem] text-soft">
-            Pace is a planning tool, not a medical tool, and doesn't provide medical advice.
-          </p>
           <Button size="lg" onClick={() => setStep(2)}>
             Next
           </Button>

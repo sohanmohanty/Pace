@@ -24,7 +24,7 @@ I built the following features to support planning, focused work, and a return t
 - Adjust the rest of the day with an instruction such as "Nothing with reading tonight, 40 minutes." Completed steps stay in the plan.
 - Add tasks through quick-add, a full form, pasted text, or a photo. Extraction includes confidence for each field and highlights the source text. Canvas and Google Calendar feed links keep assignments and fixed events current.
 - Break assignments into task-specific steps, each with a first action. Templates handle breakdowns when AI is off.
-- Draft teacher messages from a neutral reason phrase, specific requests, a tone, and an optional commitment. Reply mode handles follow-ups. A lint check flags medical or family vocabulary in the draft; Pace does not send the message itself.
+- Draft teacher messages from a neutral reason phrase, specific requests, a tone, and an optional commitment. Reply mode handles follow-ups. A lint check flags wording that explains more than it needs to and offers neutral phrasing; Pace does not send the message itself.
 - Review seven small Day Lines in Week: past progress, upcoming deadlines and fixed events, workload compared with realistic capacity, and messages that could unblock work.
 - See learned estimates in Insights: actual-to-estimated minutes by class and work type, completion rates by part of day, and the reflection multiplier. These are calculated on the device and can be reset with one button.
 - Choose light, dark, or high contrast, with larger text and reduced motion options. The app supports keyboard navigation, native inputs, and live regions. Ctrl+K or ⌘K opens the command palette.

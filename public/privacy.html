@@ -24,7 +24,7 @@
     <p>I developed Pace to help students return to schoolwork after a disruption. I designed it so that you can plan your work without explaining what happened.</p>
 
     <h2>What Pace stores, and where</h2>
-    <p>Your tasks, steps, check-ins, plans, focus sessions, reflections, and settings live in your browser's local storage (IndexedDB) on your device. There is no account and no server-side database. You can export everything as a JSON file, import it on another device, or delete it all from Settings at any time.</p>
+    <p>I designed Pace to store your tasks, steps, check-ins, plans, focus sessions, reflections, and settings in your browser's local storage (IndexedDB) on your device. There is no account and no server-side database. You can export everything as a JSON file, import it on another device, or delete it all from Settings at any time.</p>
 
     <h2>What Pace sends to make a plan</h2>
     <p>I use a language model in Pace to write your daily plan, break tasks into steps, read pasted text or photos, and draft teacher messages. I route these requests through Pace's own serverless function to the model provider. Each request contains only what that feature needs:</p>
@@ -34,7 +34,7 @@
       <li><strong>Capture:</strong> the text or photo you chose to drop in.</li>
       <li><strong>Teacher message:</strong> the neutral reason phrase and requests you picked, your optional commitment, the names you typed, and a reply you chose to paste.</li>
     </ul>
-    <p>Pace never sends your private task notes (unless you paste them into Capture yourself), your name as a profile, your reflections, or any medical or personal detail.</p>
+    <p>I exclude private task notes, your profile name, and raw reflection records from planning requests. Text, photos, and names you explicitly submit to Capture, task breakdown, or teacher-message drafting are sent as described above.</p>
     <p>I keep Pace's serverless function stateless: it forwards the request and streams the answer back without keeping a copy or logging the content. Every request asks the provider not to keep a retrievable copy.</p>
     <p>If the planner cannot be reached, Pace plans entirely on your device with its built-in scheduler, and nothing leaves your browser.</p>
 

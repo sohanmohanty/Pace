@@ -220,10 +220,9 @@ export function SettingsPage() {
       <Card>
         <SectionTitle>About Pace</SectionTitle>
         <p className="mt-2 text-soft">
-          I developed Pace as a planning tool for students returning from disruptions. It is not a medical
-          tool and does not provide medical advice.
+          I developed Pace as a planning tool for students returning from disruptions.
         </p>
-        <p className="mt-2 text-soft">Pace is free and open source, and it works offline once loaded.</p>
+        <p className="mt-2 text-soft">I provide Pace free of charge and release it as open source. It works offline once loaded.</p>
         <p className="mt-3 flex gap-5">
           <Link className="font-medium text-brand-deep underline underline-offset-2" to="/about">
             See the welcome page
