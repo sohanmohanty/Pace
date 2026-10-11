@@ -5,7 +5,7 @@
 import type OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { ZodType } from "zod";
-import { classifyError, type Resolved } from "./provider";
+import { classifyError, type Resolved } from "./provider.js";
 
 export type Effort = "low" | "medium" | "high" | "xhigh";
 

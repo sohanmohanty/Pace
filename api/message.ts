@@ -1,7 +1,7 @@
-import { structuredEndpoint } from "./_lib/handler";
-import { mockMessage } from "./_lib/mock";
-import { MESSAGE_INSTRUCTIONS } from "./_lib/prompts";
-import { MessageRequest, MessageResponse } from "../src/shared/schema";
+import { structuredEndpoint } from "./_lib/handler.js";
+import { mockMessage } from "./_lib/mock.js";
+import { MESSAGE_INSTRUCTIONS } from "./_lib/prompts.js";
+import { MessageRequest, MessageResponse } from "../src/shared/schema.js";
 
 export const POST = structuredEndpoint({
   name: "pace_message",

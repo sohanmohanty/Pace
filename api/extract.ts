@@ -1,7 +1,7 @@
-import { structuredEndpoint } from "./_lib/handler";
-import { mockExtract } from "./_lib/mock";
-import { EXTRACT_INSTRUCTIONS } from "./_lib/prompts";
-import { ExtractRequest, ExtractResponse } from "../src/shared/schema";
+import { structuredEndpoint } from "./_lib/handler.js";
+import { mockExtract } from "./_lib/mock.js";
+import { EXTRACT_INSTRUCTIONS } from "./_lib/prompts.js";
+import { ExtractRequest, ExtractResponse } from "../src/shared/schema.js";
 
 export const POST = structuredEndpoint({
   name: "pace_extract",

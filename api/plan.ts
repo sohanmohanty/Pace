@@ -1,7 +1,7 @@
-import { structuredEndpoint } from "./_lib/handler";
-import { mockPlan } from "./_lib/mock";
-import { PLAN_INSTRUCTIONS } from "./_lib/prompts";
-import { PlanRequest, PlanResponse } from "../src/shared/schema";
+import { structuredEndpoint } from "./_lib/handler.js";
+import { mockPlan } from "./_lib/mock.js";
+import { PLAN_INSTRUCTIONS } from "./_lib/prompts.js";
+import { PlanRequest, PlanResponse } from "../src/shared/schema.js";
 
 export const POST = structuredEndpoint({
   name: "pace_plan",

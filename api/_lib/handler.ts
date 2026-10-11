@@ -2,11 +2,11 @@
 // credentials or mock mode, stream deltas, and return a validated result.
 
 import type { ZodType } from "zod";
-import { chunked } from "./mock";
-import { resolve } from "./provider";
-import { checkLimit } from "./ratelimit";
-import { runStructured, type Effort } from "./run";
-import { json, readJson, sse } from "./sse";
+import { chunked } from "./mock.js";
+import { resolve } from "./provider.js";
+import { checkLimit } from "./ratelimit.js";
+import { runStructured, type Effort } from "./run.js";
+import { json, readJson, sse } from "./sse.js";
 
 export function structuredEndpoint<Req, Res>(opts: {
   name: string;

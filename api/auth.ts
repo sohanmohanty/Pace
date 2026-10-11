@@ -12,8 +12,8 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { clearTokens, readTokens, writeTokens, type PlanTokens } from "./_lib/provider";
-import { json } from "./_lib/sse";
+import { clearTokens, readTokens, writeTokens, type PlanTokens } from "./_lib/provider.js";
+import { json } from "./_lib/sse.js";
 
 const AUTHORIZE = "https://auth.openai.com/api/accounts/authorize";
 const TOKEN = "https://auth.openai.com/api/accounts/oauth/token";

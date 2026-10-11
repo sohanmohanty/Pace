@@ -2,7 +2,7 @@
 // cross-origin restrictions. Accept only HTTPS calendar-feed URLs, and do
 // not store or log their contents.
 
-import { json, readJson } from "./_lib/sse";
+import { json, readJson } from "./_lib/sse.js";
 
 const MAX_BYTES = 2_000_000;
 const ALLOWED_HOST = /(\.instructure\.com|canvas\.|calendar\.google\.com|\.ics$)/i;

@@ -1,6 +1,6 @@
-import { listModelIds, resolve } from "./_lib/provider";
-import { json } from "./_lib/sse";
-import type { HealthResponse } from "../src/shared/schema";
+import { listModelIds, resolve } from "./_lib/provider.js";
+import { json } from "./_lib/sse.js";
+import type { HealthResponse } from "../src/shared/schema.js";
 
 /** Report AI availability; safe to call repeatedly. List models only on request. */
 export async function GET(request: Request): Promise<Response> {

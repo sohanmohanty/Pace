@@ -10,7 +10,7 @@ import type {
   MessageResponse,
   PlanRequest,
   PlanResponse
-} from "../../src/shared/schema";
+} from "../../src/shared/schema.js";
 
 export function mockPlan(req: PlanRequest): PlanResponse {
   const { limits, checkIn } = req;

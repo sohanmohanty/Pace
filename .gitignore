@@ -20,3 +20,6 @@ eval-*.txt
 .pace-auth*.json
 *.local.json
 lh*.txt
+
+# Vercel CLI local state and build output
+.vercel/
