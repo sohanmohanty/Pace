@@ -1,6 +1,5 @@
-// Teacher-message composer. The student never has to disclose details:
-// reason phrases are neutral, and "no reason line" is always an option.
-// Nothing is sent by Pace; the student copies the text and stays in control.
+// Compose teacher messages with neutral reason phrases and an option to
+// omit the reason. Students copy the draft; Pace never sends it.
 
 export type ToneId = "straightforward" | "warm" | "brief";
 

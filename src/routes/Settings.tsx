@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Download, Trash2, Upload } from "lucide-react";
+import { AIStatus } from "../components/AIStatus";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { useToast } from "../components/Toast";
-import { Button, Card, Field, PageHeader, SectionTitle } from "../components/ui";
+import { Button, Card, ChipRadios, Field, PageHeader, SectionTitle } from "../components/ui";
 import { clearDemoData, hasDemoData, loadDemoData } from "../data/demo";
 import { deleteAllData, exportAll, getSettings, importData, updateSettings } from "../data/repo";
 import { todayISO } from "../lib/dates";
+import { THEME_OPTIONS } from "../lib/theme";
+import { Link } from "react-router-dom";
 
 function ToggleRow({
   label,
@@ -34,6 +37,11 @@ function ToggleRow({
     </label>
   );
 }
+
+/** The AI connection panel is developer tooling; it only renders on a local dev host. */
+const isLocalHost =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
 
 export function SettingsPage() {
   const toast = useToast();
@@ -90,20 +98,32 @@ export function SettingsPage() {
     <div className="space-y-5 lg:mx-auto lg:max-w-2xl">
       <PageHeader title="Settings" />
 
+      {isLocalHost && (
+        <Card>
+          <SectionTitle>Planning (local development only)</SectionTitle>
+          <div className="mt-3">
+            <AIStatus />
+          </div>
+        </Card>
+      )}
+
       <Card>
-        <SectionTitle>Display</SectionTitle>
-        <div className="mt-2 divide-y divide-line">
+        <SectionTitle>Appearance</SectionTitle>
+        <div className="mt-3">
+          <ChipRadios
+            legend="Theme"
+            name="theme"
+            options={THEME_OPTIONS.map((t) => ({ value: t.value, label: t.label }))}
+            value={settings.theme ?? "system"}
+            onChange={(theme) => updateSettings({ theme, highContrast: theme === "hc" })}
+          />
+        </div>
+        <div className="mt-3 divide-y divide-line">
           <ToggleRow
             label="Larger text"
             hint="Increases text size across the app."
             checked={settings.largeText}
             onChange={(v) => updateSettings({ largeText: v })}
-          />
-          <ToggleRow
-            label="High contrast"
-            hint="Stronger colors and borders."
-            checked={settings.highContrast}
-            onChange={(v) => updateSettings({ highContrast: v })}
           />
           <ToggleRow
             label="Reduce animations"
@@ -115,12 +135,18 @@ export function SettingsPage() {
       </Card>
 
       <Card>
+        <SectionTitle>What Pace has learned</SectionTitle>
+        <p className="mt-2 text-soft">
+          Estimate calibration, when your steps get finished, and how reflections size tomorrow. All on this device, all visible, all resettable.
+        </p>
+        <Link to="/insights" className="mt-3 inline-flex min-h-11 items-center rounded-[0.875rem] bg-brand-soft px-4 font-medium text-brand-deep">
+          See insights
+        </Link>
+      </Card>
+
+      <Card>
         <SectionTitle>About you</SectionTitle>
-        <Field
-          label="Name"
-          hint="Optional. Only used to sign teacher messages. Never leaves this device."
-          className="mt-2"
-        >
+        <Field label="Name" className="mt-2">
           <input
             className="input"
             value={name}
@@ -135,8 +161,8 @@ export function SettingsPage() {
         <SectionTitle>Your data</SectionTitle>
         <p className="mt-2 text-soft">
           Everything Pace knows lives in this browser's local storage: tasks, plans, check-ins,
-          and reflections. There is no account, no server, and no tracking. Pace never asks for a
-          diagnosis or medical details.
+          focus sessions, and reflections. There is no account and no tracking. The planner
+          receives only what it needs to plan and stores nothing.
         </p>
         <div className="mt-4 space-y-2">
           <Button variant="soft" size="lg" onClick={exportData}>
@@ -194,20 +220,32 @@ export function SettingsPage() {
       <Card>
         <SectionTitle>About Pace</SectionTitle>
         <p className="mt-2 text-soft">
-          Pace is a planning tool for students returning from disruptions. It is not a medical
-          tool and does not provide medical advice. You never need to explain what happened,
-          not to Pace or to anyone else.
+          I developed Pace as a planning tool for students returning from disruptions. It is not a medical
+          tool and does not provide medical advice.
         </p>
-        <p className="mt-2 text-soft">Works offline once loaded. Free, open source.</p>
-        <p className="mt-3">
+        <p className="mt-2 text-soft">Pace is free and open source, and it works offline once loaded.</p>
+        <p className="mt-3 flex gap-5">
+          <Link className="font-medium text-brand-deep underline underline-offset-2" to="/about">
+            See the welcome page
+          </Link>
+          <Link className="font-medium text-brand-deep underline underline-offset-2" to="/how">
+            How Pace thinks
+          </Link>
+        </p>
+        <p className="mt-3 flex gap-5">
           <a
             className="font-medium text-brand-deep underline underline-offset-2"
             href="mailto:sohanm4364@gmail.com?subject=Pace%20feedback"
           >
             Send feedback
           </a>
+          <a
+            className="font-medium text-brand-deep underline underline-offset-2"
+            href="/privacy.html"
+          >
+            Privacy policy
+          </a>
         </p>
-        <p className="mt-2 text-[0.85rem] text-soft">Pace v0.1</p>
       </Card>
 
       <ConfirmDialog

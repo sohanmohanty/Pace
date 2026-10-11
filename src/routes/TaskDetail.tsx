@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronDown, ChevronUp, Mail, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Mail, Plus, Sparkles, Trash2 } from "lucide-react";
+import { runAIBreakdown } from "../ai/planner";
+import { capacityMultiplier } from "../logic/adaptation";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { TaskForm } from "../components/TaskForm";
 import { useToast } from "../components/Toast";
@@ -12,12 +14,15 @@ import {
   addSubtasks,
   deleteSubtask,
   deleteTask,
+  getProfile,
+  listReflections,
   moveSubtask,
   setTaskStatus,
   toggleSubtaskDone,
   updateTask,
   type TaskDraft
 } from "../data/repo";
+import { uid } from "../lib/id";
 import { daysUntil, formatDueLabel } from "../lib/dates";
 import { minutesLabel } from "../lib/labels";
 import { detectTemplate, generateSubtasks, TEMPLATES, type TemplateKey } from "../logic/breakdown";
@@ -30,7 +35,10 @@ export function TaskDetail() {
   const [newStep, setNewStep] = useState("");
   const [template, setTemplate] = useState<TemplateKey | null>(null);
   const [breaking, setBreaking] = useState(false);
+  const [details, setDetails] = useState("");
+  const [breakNote, setBreakNote] = useState<string | null>(null);
   const addingStep = useRef(false);
+  const aiOn = true;
 
   const task = useLiveQuery(async () => (id ? ((await db.tasks.get(id)) ?? null) : null), [id]);
   const subtasks = useLiveQuery(
@@ -58,11 +66,31 @@ export function TaskDetail() {
     toast("Saved");
   }
 
-  async function breakDown() {
+  async function breakDown(useAI: boolean) {
     // Double-click would generate the whole step list twice.
     if (breaking) return;
     setBreaking(true);
+    setBreakNote(null);
     try {
+      if (useAI) {
+        try {
+          const [profile, reflections] = await Promise.all([getProfile(), listReflections()]);
+          const out = await runAIBreakdown(task!, profile, reflections, capacityMultiplier(reflections), details);
+          await addSubtasks(
+            out.steps.map((s, i) => ({ ...s, id: uid(), taskId: task!.id, status: "not_started" as const, order: i }))
+          );
+          if (Math.abs(out.totalMinutes - task!.estimatedMinutes) >= 20) {
+            await updateTask(task!.id, { estimatedMinutes: out.totalMinutes });
+            setBreakNote(`${out.note} Estimate updated to about ${out.totalMinutes} minutes.`);
+          } else {
+            setBreakNote(out.note);
+          }
+          toast("Broken into steps. Edit them freely");
+          return;
+        } catch {
+          toast("The planner was unavailable, so Pace used a template");
+        }
+      }
       await addSubtasks(generateSubtasks(task!, selectedTemplate));
       toast("Broken into steps. Edit them freely");
     } finally {
@@ -105,8 +133,31 @@ export function TaskDetail() {
         {subtasks.length === 0 ? (
           <div className="mt-3 space-y-3">
             <p className="text-soft">
-              Big tasks are easier to start when they're small. Pace can break this one down.
+              Big tasks are easier to start when they're small. Pace can break this one down into
+              steps specific to this assignment.
             </p>
+            {aiOn && (
+              <>
+                <label className="block">
+                  <span className="font-medium">Paste the assignment, if you have it</span>
+                  <span className="mt-0.5 block text-[0.9rem] text-soft">
+                    Optional. Only sent when you break it down. Makes the steps much more specific.
+                  </span>
+                  <textarea
+                    className="input"
+                    rows={3}
+                    value={details}
+                    onChange={(e) => setDetails(e.target.value)}
+                    placeholder="e.g. the rubric, the prompt, or the email from your teacher"
+                  />
+                </label>
+                <Button size="lg" onClick={() => breakDown(true)} disabled={breaking}>
+                  <Sparkles aria-hidden="true" size={18} />
+                  {breaking ? "Breaking it down…" : "Break it down"}
+                </Button>
+                <p className="text-center text-[0.85rem] text-soft">or use a template, no AI</p>
+              </>
+            )}
             <label className="block">
               <span className="font-medium">Template</span>
               <select
@@ -121,12 +172,13 @@ export function TaskDetail() {
                 ))}
               </select>
             </label>
-            <Button size="lg" onClick={breakDown} disabled={breaking}>
-              Break it down
+            <Button size="lg" variant={aiOn ? "soft" : "primary"} onClick={() => breakDown(false)} disabled={breaking}>
+              {aiOn ? "Use the template" : "Break it down"}
             </Button>
           </div>
         ) : (
           <>
+            {breakNote && <p className="mt-2 text-[0.9rem] text-soft">{breakNote}</p>}
             <ul className="mt-3 space-y-1.5">
               {subtasks.map((s, i) => (
                 <li
@@ -149,6 +201,9 @@ export function TaskDetail() {
                     <span className="ml-2 text-[0.85rem] text-soft">
                       {minutesLabel(s.estimatedMinutes)}
                     </span>
+                    {s.firstAction && s.status !== "done" && (
+                      <span className="block text-[0.85rem] text-soft">First: {s.firstAction}</span>
+                    )}
                   </span>
                   <span className="flex shrink-0 items-center">
                     <button

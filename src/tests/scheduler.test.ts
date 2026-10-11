@@ -93,6 +93,19 @@ describe("eligibility (Step 0)", () => {
     expect(cands.map((c) => c.title)).toContain("Send teacher update");
   });
 
+  it("does not let a leading communication step block the task's work", () => {
+    const task = makeTask({ title: "Lab" });
+    const subs = [
+      makeSubtask(task.id, 0, { title: "Send update", type: "communication", estimatedMinutes: 5 }),
+      makeSubtask(task.id, 1, { title: "Re-read notes", estimatedMinutes: 15 }),
+      makeSubtask(task.id, 2, { title: "Draft results", estimatedMinutes: 25 })
+    ];
+    const titles = buildCandidates([task], subs, "medium", TODAY).map((c) => c.title);
+    expect(titles).toContain("Send update");
+    expect(titles).toContain("Re-read notes");
+    expect(titles).not.toContain("Draft results");
+  });
+
   it("caps candidates at 2 per task", () => {
     const task = makeTask({ needsCommunication: true });
     const subs = [0, 1, 2, 3].map((o) => makeSubtask(task.id, o));
@@ -162,6 +175,71 @@ describe("knapsack selection (Step 5)", () => {
 
   it("returns empty for an empty candidate list", () => {
     expect(selectCandidates([], 30, 3)).toEqual([]);
+  });
+});
+
+describe("fill (Step 5b)", () => {
+  function brokenDown(patch: Partial<Task> = {}) {
+    const task = makeTask({ estimatedMinutes: 120, importance: 4, ...patch });
+    const subs = [10, 10, 15, 25, 30, 10, 5].map((m, i) =>
+      makeSubtask(task.id, i, { title: `${task.title} step ${i}`, estimatedMinutes: m })
+    );
+    return { task, subs };
+  }
+
+  it("extends a lone broken-down task to fill a high-capacity day, in order", () => {
+    const { task, subs } = brokenDown({ dueDate: "2026-06-29" });
+    const plan = generatePlan({ tasks: [task], subtasks: subs, capacity: "high", today: TODAY });
+    expect(plan.actions.length).toBeGreaterThan(1);
+    expect(plan.actions.length).toBeLessThanOrEqual(
+      CAPACITY_PARAMS.high.maxActions + CAPACITY_PARAMS.high.maxChained
+    );
+    expect(totalPlanMinutes(plan.actions)).toBeLessThanOrEqual(plan.budgetMinutes);
+    const orders = plan.actions.map((a) => subs.find((s) => s.id === a.subtaskId)!.order);
+    expect(orders).toEqual([...orders].sort((a, b) => a - b));
+    expect(orders[0]).toBe(0);
+  });
+
+  it("spreads across tasks before chaining within one", () => {
+    const a = brokenDown({ title: "A", dueDate: "2026-06-29" });
+    const b = brokenDown({ title: "B", dueDate: "2026-07-20", importance: 2 });
+    const plan = generatePlan({
+      tasks: [a.task, b.task],
+      subtasks: [...a.subs, ...b.subs],
+      capacity: "high",
+      today: TODAY
+    });
+    const taskIds = new Set(plan.actions.map((x) => x.taskId));
+    expect(taskIds.has(a.task.id)).toBe(true);
+    expect(taskIds.has(b.task.id)).toBe(true);
+  });
+
+  it("keeps chained steps within the low-capacity block, budget, and action cap", () => {
+    const { task, subs } = brokenDown();
+    const plan = generatePlan({ tasks: [task], subtasks: subs, capacity: "low", today: TODAY });
+    expect(plan.actions.length).toBeGreaterThan(1);
+    expect(plan.actions.length).toBeLessThanOrEqual(CAPACITY_PARAMS.low.maxActions);
+    for (const x of plan.actions) {
+      expect(x.estimatedMinutes).toBeLessThanOrEqual(CAPACITY_PARAMS.low.maxBlock);
+    }
+    expect(totalPlanMinutes(plan.actions)).toBeLessThanOrEqual(plan.budgetMinutes);
+  });
+
+  it("never chains after a chunk or starter step", () => {
+    const task = makeTask({ estimatedMinutes: 200 });
+    const subs = [
+      makeSubtask(task.id, 0, { estimatedMinutes: 90 }),
+      makeSubtask(task.id, 1, { estimatedMinutes: 10 })
+    ];
+    const plan = generatePlan({ tasks: [task], subtasks: subs, capacity: "high", today: TODAY });
+    expect(plan.actions).toHaveLength(1);
+    expect(plan.actions[0].virtual).toBe(true);
+  });
+
+  it("labels chained steps in the why text", () => {
+    const { task, subs } = brokenDown();
+    const plan = generatePlan({ tasks: [task], subtasks: subs, capacity: "medium", today: TODAY });
+    expect(plan.actions[1].why).toMatch(/next step in the sequence/i);
   });
 });
 

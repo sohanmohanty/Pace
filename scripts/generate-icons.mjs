@@ -1,6 +1,5 @@
-// Zero-dependency PWA icon generator.
-// Draws the Pace mark (three growing bars on a teal rounded square) and
-// encodes PNGs by hand, so no native image libraries are needed.
+// Generate PWA icons without native image libraries. Draw the Pace mark,
+// a short path and stop matching the Day Line, and encode PNGs directly.
 import { deflateSync } from "node:zlib";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -9,7 +8,7 @@ import { fileURLToPath } from "node:url";
 const outDir = join(dirname(fileURLToPath(import.meta.url)), "..", "public", "icons");
 mkdirSync(outDir, { recursive: true });
 
-// ---- PNG encoding -----------------------------------------------------------
+// PNG encoding
 const crcTable = (() => {
   const t = new Uint32Array(256);
   for (let n = 0; n < 256; n++) {
@@ -56,7 +55,7 @@ function encodePNG(w, h, rgba) {
   ]);
 }
 
-// ---- Drawing ----------------------------------------------------------------
+// Drawing
 // Signed distance to a rounded rectangle centered at (cx, cy).
 function sdRoundRect(px, py, cx, cy, hw, hh, r) {
   const dx = Math.abs(px - cx) - (hw - r);
@@ -79,13 +78,40 @@ function render(size, { fullBleed = false, contentScale = 1 } = {}) {
   const bgHalf = fullBleed ? size / 2 : size * 0.5 * 0.96;
   const bgRadius = fullBleed ? 0 : size * 0.22;
 
-  // Three left-aligned bars, growing in width: quiet "momentum" mark.
+  // Draw the path, stop ring, and end dot with signed distances, matching
+// the geometry in components/Logo.tsx.
   const s = contentScale;
-  const barH = size * 0.088 * s;
-  const barR = barH / 2;
-  const left = c - size * 0.27 * s;
-  const widths = [0.28, 0.40, 0.54].map((w) => size * w * s);
-  const ys = [-0.155, 0, 0.155].map((o) => c + size * o * s);
+  const P = (ux, uy) => [c + (ux - 0.5) * size * s, c + (uy - 0.5) * size * s];
+  const [ax, ay] = P(0.2, 0.68);
+  const [bx, by] = P(0.48, 0.2);
+  const [ex, ey] = P(0.84, 0.44);
+  const samples = [];
+  for (let i = 0; i <= 64; i++) {
+    const t = i / 64;
+    const mt = 1 - t;
+    samples.push([mt * mt * ax + 2 * mt * t * bx + t * t * ex, mt * mt * ay + 2 * mt * t * by + t * t * ey]);
+  }
+  const pathW = size * 0.1 * s;
+  const stopT = 0.62;
+  const mt = 1 - stopT;
+  const [sx, sy] = [mt * mt * ax + 2 * mt * stopT * bx + stopT * stopT * ex, mt * mt * ay + 2 * mt * stopT * by + stopT * stopT * ey];
+  const stopR = size * 0.13 * s;
+  const stopW = size * 0.085 * s;
+  const dotR = size * 0.06 * s;
+
+  const sdPath = (px, py) => {
+    let best = Infinity;
+    for (let i = 1; i < samples.length; i++) {
+      const [x0, y0] = samples[i - 1];
+      const [x1, y1] = samples[i];
+      const vx = x1 - x0, vy = y1 - y0;
+      const wx = px - x0, wy = py - y0;
+      const tt = Math.max(0, Math.min(1, (wx * vx + wy * vy) / (vx * vx + vy * vy || 1)));
+      const d = Math.hypot(px - (x0 + tt * vx), py - (y0 + tt * vy));
+      if (d < best) best = d;
+    }
+    return best - pathW / 2;
+  };
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
@@ -101,16 +127,17 @@ function render(size, { fullBleed = false, contentScale = 1 } = {}) {
       let gC = Math.round(114 + (94 - 114) * t);
       let bC = Math.round(104 + (87 - 104) * t);
 
-      // Bars in warm off-white.
-      let aBar = 0;
-      for (let i = 0; i < 3; i++) {
-        const d = sdRoundRect(px, py, left + widths[i] / 2, ys[i], widths[i] / 2, barH / 2, barR);
-        aBar = Math.max(aBar, clamp01(0.5 - d));
-      }
-      if (aBar > 0) {
-        rC = Math.round(rC + (246 - rC) * aBar);
-        gC = Math.round(gC + (244 - gC) * aBar);
-        bC = Math.round(bC + (239 - bC) * aBar);
+      // Warm off-white mark: path, then the stop ring (teal center), then the end dot.
+      const dStop = Math.hypot(px - sx, py - sy);
+      let aMark = clamp01(0.5 - sdPath(px, py));
+      // Cut the path out of the stop's interior so the ring reads as a ring.
+      if (dStop < stopR - stopW / 2) aMark = 0;
+      aMark = Math.max(aMark, clamp01(0.5 - (Math.abs(dStop - stopR) - stopW / 2)));
+      aMark = Math.max(aMark, clamp01(0.5 - (Math.hypot(px - ex, py - ey) - dotR)));
+      if (aMark > 0) {
+        rC = Math.round(rC + (246 - rC) * aMark);
+        gC = Math.round(gC + (244 - gC) * aMark);
+        bC = Math.round(bC + (239 - bC) * aMark);
       }
 
       const idx = (y * size + x) * 4;
@@ -123,8 +150,34 @@ function render(size, { fullBleed = false, contentScale = 1 } = {}) {
   return encodePNG(size, size, pix);
 }
 
+// ICO container holding PNG images (supported by every current browser and by Google).
+function encodeICO(pngs) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(1, 2); // type: icon
+  header.writeUInt16LE(pngs.length, 4);
+  const entries = [];
+  let offset = 6 + 16 * pngs.length;
+  for (const { size, data } of pngs) {
+    const e = Buffer.alloc(16);
+    e[0] = size >= 256 ? 0 : size;
+    e[1] = size >= 256 ? 0 : size;
+    e.writeUInt16LE(1, 4); // color planes
+    e.writeUInt16LE(32, 6); // bits per pixel
+    e.writeUInt32LE(data.length, 8);
+    e.writeUInt32LE(offset, 12);
+    entries.push(e);
+    offset += data.length;
+  }
+  return Buffer.concat([header, ...entries, ...pngs.map((p) => p.data)]);
+}
+
 writeFileSync(join(outDir, "icon-192.png"), render(192));
 writeFileSync(join(outDir, "icon-512.png"), render(512));
 writeFileSync(join(outDir, "icon-maskable-512.png"), render(512, { fullBleed: true, contentScale: 0.78 }));
 writeFileSync(join(outDir, "apple-touch-icon.png"), render(180, { fullBleed: true, contentScale: 0.9 }));
+// Google Search requires a favicon whose size is a multiple of 48px; it fetches /favicon.ico.
+writeFileSync(
+  join(outDir, "..", "favicon.ico"),
+  encodeICO([16, 32, 48].map((size) => ({ size, data: render(size) })))
+);
 console.log("Icons written to", outDir);

@@ -10,7 +10,7 @@ export interface ScoreFactors {
   daysUntilDue: number | null;
 }
 
-/** Urgency from due date. Overdue work matters most; it is the re-entry pile. */
+/** Score urgency by due date, giving past-due work the highest priority. */
 export function urgencyScore(dueISO: string | undefined, todayISO: string): number {
   if (!dueISO) return 1;
   const days = daysUntil(dueISO, todayISO);
@@ -93,9 +93,14 @@ export function reasonFor(
   return "momentum";
 }
 
-/** Honest, human-readable answer to "why this?". */
-export function whyText(factors: ScoreFactors, kind: SubtaskType | "task"): string {
+/** Explain the score factors behind "why this?". */
+export function whyText(
+  factors: ScoreFactors,
+  kind: SubtaskType | "task",
+  chained = false
+): string {
   const parts: string[] = [];
+  if (chained) parts.push("next step in the sequence");
   if (factors.daysUntilDue !== null) {
     if (factors.daysUntilDue < 0) parts.push("past due, a small restart counts");
     else if (factors.daysUntilDue === 0) parts.push("due today");

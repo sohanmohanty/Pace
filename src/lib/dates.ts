@@ -1,6 +1,6 @@
-// All date handling is LOCAL-time. `new Date("2026-07-03")` parses as UTC
-// midnight, which is the previous evening in California, so every due date
-// would be off by one. These helpers exist so that mistake can't happen.
+// Parse date-only strings in local time. Passing an ISO date to new Date uses UTC
+// midnight, which falls on the previous evening in California and shifts
+// the due date by a day.
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

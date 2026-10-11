@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus } from "lucide-react";
 import { addTask } from "../data/repo";
 import { todayISO } from "../lib/dates";
 import { parseQuickAdd } from "../logic/quickadd";
@@ -47,23 +46,18 @@ export function QuickAdd() {
     <form onSubmit={submit}>
       <label className="block">
         <span className="font-medium">Quick add</span>
-        <span className="mt-0.5 block text-[0.9rem] text-soft">
-          One line is enough. Try “essay due fri ~2h #english”
-        </span>
-        <div className="mt-1.5 flex gap-2">
-          <input
-            className="input mt-0 flex-1"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="What's on your plate?"
-            autoComplete="off"
-          />
-          <Button type="submit" aria-label="Add task" disabled={!parsed?.title}>
-            <Plus aria-hidden="true" size={20} />
-            Add
-          </Button>
-        </div>
+        <span className="mt-0.5 block text-[0.9rem] text-soft">One line is enough.</span>
+        <input
+          className="input mt-2 min-h-12"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="What's on your plate?"
+          autoComplete="off"
+        />
       </label>
+      <Button type="submit" aria-label="Add this task" className="mt-2 w-full" disabled={!parsed?.title}>
+        Add
+      </Button>
       <div aria-live="polite">
         {parsed && parsed.recognized.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">

@@ -3,3 +3,20 @@ dist/
 dev-dist/
 *.local
 .DS_Store
+
+# test and audit output
+test-results/
+playwright-report/
+.lighthouseci/
+pw-*.txt
+build.txt
+lh.txt
+plan-live*.txt
+vite5181.log
+eval-live*.txt
+eval-*.txt
+
+# local credentials and auth state (never commit)
+.pace-auth*.json
+*.local.json
+lh*.txt

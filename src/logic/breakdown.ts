@@ -97,7 +97,7 @@ const roundTo5 = (m: number) => Math.max(5, Math.round(m / 5) * 5);
 
 /**
  * Generate ordered subtasks for a task from a template, scaled so the total
- * roughly matches the task's own effort estimate (clamped ×0.5–×2.5, steps
+ * roughly matches the task's own effort estimate (clamped ×0.5 to ×2.5, steps
  * kept between 5 and 60 minutes).
  */
 export function generateSubtasks(task: Task, key?: TemplateKey): Subtask[] {
@@ -125,7 +125,7 @@ export function generateSubtasks(task: Task, key?: TemplateKey): Subtask[] {
     id: uid(),
     taskId: task.id,
     title: step.title,
-    // Communication and submit steps don't grow with assignment size.
+    // Communication and submission steps do not scale with assignment size.
     estimatedMinutes:
       step.type === "communication" || step.type === "submit"
         ? step.minutes

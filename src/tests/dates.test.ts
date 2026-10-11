@@ -34,7 +34,7 @@ describe("dates (local-time safety)", () => {
   });
 
   it("finds the next weekday, treating today as a match", () => {
-    // 2026-07-01 is a Wednesday.
+    // The fixture day is a Wednesday.
     expect(nextWeekdayISO(3, "2026-07-01")).toBe("2026-07-01"); // Wed → today
     expect(nextWeekdayISO(5, "2026-07-01")).toBe("2026-07-03"); // Fri
     expect(nextWeekdayISO(1, "2026-07-01")).toBe("2026-07-06"); // Mon

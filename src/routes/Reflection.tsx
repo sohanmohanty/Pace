@@ -1,35 +1,38 @@
-import { useState } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { DayLine } from "../components/DayLine";
 import { useToast } from "../components/Toast";
 import { Button, Card, ChipRadios, Field, PageHeader } from "../components/ui";
-import { addReflection, getTodayPlan } from "../data/repo";
+import { addReflection } from "../data/repo";
 import type { Reflection as ReflectionType } from "../data/types";
 import { todayISO } from "../lib/dates";
+import { minutesLabel } from "../lib/labels";
+import { taskOrderFor, usePlannerData } from "../lib/usePlanner";
 
 export function Reflection() {
   const navigate = useNavigate();
   const toast = useToast();
-  const plan = useLiveQuery(async () => (await getTodayPlan()) ?? null, []);
+  const data = usePlannerData();
 
   const [planFelt, setPlanFelt] = useState<ReflectionType["planFelt"]>("right");
   const [pref, setPref] = useState<ReflectionType["nextPlanPreference"]>("same");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const taskOrder = useMemo(() => taskOrderFor(data.activeTasks), [data.activeTasks]);
 
-  if (plan === undefined) return null;
+  if (!data.ready) return null;
+  const plan = data.plan;
 
-  const doneCount = plan?.actions.filter((a) => a.completed).length ?? 0;
+  const done = plan?.actions.filter((a) => a.completed) ?? [];
+  const doneMinutes = done.reduce((s, a) => s + a.estimatedMinutes, 0);
 
   async function save() {
-    // A double-click would store two reflections and double-apply the
-    // adaptation multiplier.
     if (saving) return;
     setSaving(true);
     await addReflection({
       date: todayISO(),
       planId: plan?.id,
-      completedActionIds: plan?.actions.filter((a) => a.completed).map((a) => a.id) ?? [],
+      completedActionIds: done.map((a) => a.id),
       planFelt,
       nextPlanPreference: pref,
       note: note.trim() || undefined
@@ -43,11 +46,24 @@ export function Reflection() {
       <PageHeader
         title="Wrap up"
         subtitle={
-          doneCount > 0
-            ? `You completed ${doneCount} step${doneCount === 1 ? "" : "s"} today. Steps count.`
+          done.length > 0
+            ? `${done.length} step${done.length === 1 ? "" : "s"}, about ${minutesLabel(doneMinutes)} of real work. That counts.`
             : "Showing up counts too. Tomorrow can start smaller."
         }
       />
+
+      {plan && (
+        <div className="card card-tint px-2 pb-2 pt-2">
+          <DayLine
+            actions={plan.actions}
+            budgetMinutes={plan.budgetMinutes}
+            windows={data.checkIn?.windows}
+            taskOrder={taskOrder}
+            size="compact"
+            showSpare={false}
+          />
+        </div>
+      )}
 
       <Card className="space-y-5">
         <ChipRadios
@@ -64,7 +80,6 @@ export function Reflection() {
 
         <ChipRadios
           legend="Tomorrow's plan should be…"
-          hint="This actually changes tomorrow's plan size."
           name="pref"
           options={[
             { value: "lighter" as const, label: "Lighter" },
@@ -76,12 +91,7 @@ export function Reflection() {
         />
 
         <Field label="Anything worth remembering?" hint="Optional: what helped you start?">
-          <textarea
-            className="input"
-            rows={3}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
+          <textarea className="input" rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>
 
         <Button size="lg" onClick={save} disabled={saving}>

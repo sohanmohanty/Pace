@@ -13,11 +13,11 @@ export function TaskCard({ task, subtasks }: { task: Task; subtasks: Subtask[] }
   return (
     <Link
       to={`/task/${task.id}`}
-      className={`block rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-brand ${
-        isDone ? "opacity-70" : ""
+      className={`block rounded-[1rem] border border-line bg-surface p-4 transition-colors hover:border-brand ${
+        isDone ? "border-dashed" : ""
       }`}
     >
-      <p className={`font-medium ${isDone ? "line-through decoration-2" : ""}`}>{task.title}</p>
+      <p className={`font-medium ${isDone ? "text-soft line-through decoration-2" : ""}`}>{task.title}</p>
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
         {task.course && <Chip>{task.course}</Chip>}
         {task.dueDate && (

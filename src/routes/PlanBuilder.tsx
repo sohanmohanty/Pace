@@ -1,98 +1,53 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Feather, Sparkles } from "lucide-react";
-import { CapacityPicker } from "../components/CapacityPicker";
+import { Feather } from "lucide-react";
+import { CheckInPanel } from "../components/CheckInPanel";
 import { EmptyState } from "../components/EmptyState";
-import { PlanActionCard } from "../components/PlanActionCard";
+import { StepCard } from "../components/StepCard";
 import { useToast } from "../components/Toast";
-import { Button, Card, Chip, ChipRadios, PageHeader } from "../components/ui";
-import { db } from "../data/db";
-import {
-  getTodayCheckIn,
-  listReflections,
-  saveCheckIn,
-  savePlanForToday
-} from "../data/repo";
-import type { CapacityLevel } from "../data/types";
+import { Button, Chip, PageHeader, SectionTitle } from "../components/ui";
+import { getTodayCheckIn, saveCheckIn } from "../data/repo";
 import { minutesLabel } from "../lib/labels";
-import { capacityMultiplier, multiplierLabel } from "../logic/adaptation";
-import { generatePlan, totalPlanMinutes } from "../logic/scheduler";
+import {
+  buildLocalPlan,
+  draftFromCheckIn,
+  taskOrderFor,
+  usePlannerData,
+  type DraftCheckIn
+} from "../lib/usePlanner";
+import { multiplierLabel } from "../logic/adaptation";
+import { useAIPlan } from "../lib/useAIPlan";
 
-const TIME_OPTIONS = [
-  { value: 0, label: "No limit" },
-  { value: 15, label: "15m" },
-  { value: 30, label: "30m" },
-  { value: 60, label: "1h" },
-  { value: 90, label: "1.5h" },
-  { value: 120, label: "2h" }
-];
-
+/** Adjust today's plan: the same dial and line as the first check-in, plus the preview list. */
 export function PlanBuilder() {
   const navigate = useNavigate();
   const toast = useToast();
-
-  const allTasks = useLiveQuery(() => db.tasks.toArray(), []);
-  const subtasks = useLiveQuery(() => db.subtasks.toArray(), []);
-  const checkIn = useLiveQuery(async () => (await getTodayCheckIn()) ?? null, []);
-  const reflections = useLiveQuery(() => listReflections(), []);
-
-  const [capacity, setCapacity] = useState<CapacityLevel | null>(null);
-  const [available, setAvailable] = useState<number>(0);
+  const data = usePlannerData();
+  const [draft, setDraft] = useState<DraftCheckIn | null>(null);
   const [shrink, setShrink] = useState(false);
-  const seededFromCheckIn = useRef(false);
+  const [busy, setBusy] = useState(false);
+  const aiPlan = useAIPlan();
 
   useEffect(() => {
-    if (checkIn && !seededFromCheckIn.current) {
-      seededFromCheckIn.current = true;
-      setCapacity((c) => c ?? checkIn.capacity);
-      if (checkIn.availableMinutes) setAvailable(checkIn.availableMinutes);
-    }
-  }, [checkIn]);
+    if (data.ready && draft === null) setDraft(draftFromCheckIn(data.checkIn));
+  }, [data.ready, data.checkIn, draft]);
 
-  const multiplier = capacityMultiplier(reflections ?? []);
-  const mLabel = multiplierLabel(multiplier);
-
-  const activeTasks = useMemo(
-    () => (allTasks ?? []).filter((t) => !t.archived),
-    [allTasks]
+  const preview = useMemo(
+    () =>
+      draft ? buildLocalPlan(draft, data.activeTasks, data.subtasks, data.multiplier, shrink) : null,
+    [draft, data.activeTasks, data.subtasks, data.multiplier, shrink]
   );
-  const openCount = activeTasks.filter((t) => t.status !== "done").length;
+  const taskOrder = useMemo(() => taskOrderFor(data.activeTasks), [data.activeTasks]);
 
-  const preview = useMemo(() => {
-    if (!capacity || allTasks === undefined || subtasks === undefined) return null;
-    return generatePlan({
-      tasks: activeTasks,
-      subtasks,
-      capacity,
-      multiplier,
-      availableMinutes: available || undefined,
-      shrink
-    });
-  }, [capacity, activeTasks, subtasks, multiplier, available, shrink, allTasks]);
+  if (!data.ready || draft === null || preview === null) return null;
 
-  if (allTasks === undefined || subtasks === undefined || checkIn === undefined) return null;
+  const mLabel = multiplierLabel(data.multiplier);
 
-  async function pickCapacity(c: CapacityLevel) {
-    setCapacity(c);
-    await saveCheckIn(c, available || undefined);
-  }
-
-  async function usePlan() {
-    if (!preview) return;
-    await savePlanForToday(preview);
-    toast("Plan ready. One step at a time");
-    navigate("/");
-  }
-
-  if (openCount === 0) {
+  if (data.openTasks.length === 0) {
     return (
       <div className="space-y-5 lg:mx-auto lg:max-w-xl">
         <PageHeader title="Today's plan" />
-        <EmptyState
-          title="Nothing to plan yet"
-          body="Add what's on your plate first. One line per thing is enough."
-        >
+        <EmptyState title="Nothing to plan yet" body="Add what's on your plate first. One line per thing is enough.">
           <Button size="lg" onClick={() => navigate("/tasks")}>
             Go to my tasks
           </Button>
@@ -101,88 +56,88 @@ export function PlanBuilder() {
     );
   }
 
-  const planned = preview ? totalPlanMinutes(preview.actions) : 0;
+  async function usePlan() {
+    if (!draft || busy) return;
+    setBusy(true);
+    try {
+      await saveCheckIn({
+        dial: Math.round(draft.dial),
+        capacity: draft.unsure ? "unsure" : undefined,
+        windows: draft.windows,
+        heavy: draft.heavy,
+        availableMinutes: draft.availableMinutes || undefined
+      });
+      const saved = await getTodayCheckIn();
+      void aiPlan.run(preview!, {
+        tasks: data.activeTasks,
+        subtasks: data.subtasks,
+        checkIn: saved!,
+        reflections: data.reflections,
+        multiplier: data.multiplier,
+        currentPlan: data.plan,
+        mode: "plan"
+      });
+      toast("Plan updated. Completed steps kept");
+      navigate("/");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const planned = preview.actions.reduce((s, a) => s + a.estimatedMinutes, 0);
 
   return (
-    <div className="space-y-5 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-6 lg:space-y-0">
+    <div className="space-y-6 lg:grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start lg:gap-x-8 lg:space-y-0">
       <div className="lg:col-span-2">
         <PageHeader
-          title="Today's plan"
-          subtitle="Built from your tasks and your capacity, nothing else."
+          title="Shape today"
+          subtitle="Built from your tasks and how today feels, nothing else. Completed steps are always kept."
         />
       </div>
 
-      <div className="min-w-0 space-y-5">
-        <Card>
-          <CapacityPicker value={capacity ?? undefined} onChange={pickCapacity} />
-        </Card>
-
-        <Card>
-          <ChipRadios
-            legend="How much time do you actually have?"
-            hint="Optional. Caps the plan."
-            name="available"
-            options={TIME_OPTIONS}
-            value={available}
-            onChange={setAvailable}
-          />
-        </Card>
+      <div className="min-w-0">
+        <CheckInPanel
+          draft={draft}
+          onDraft={setDraft}
+          tasks={data.activeTasks}
+          subtasks={data.subtasks}
+          multiplier={data.multiplier}
+          onUse={usePlan}
+          useLabel={shrink ? "Use the smaller plan" : "Use this plan"}
+          busy={busy}
+          compact
+        />
       </div>
 
-      <div className="min-w-0 space-y-5">
-      {preview && (
-        <section aria-label="Plan preview" className="space-y-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Chip tone="brand">
-              up to {minutesLabel(preview.budgetMinutes)}
-            </Chip>
-            {mLabel && (
-              <Chip tone="brand" className="border border-brand-soft">
-                adjusted {mLabel} from your reflections
-              </Chip>
-            )}
-            {shrink && <Chip tone="good">smaller version</Chip>}
-          </div>
-
-          <div aria-live="polite" className="text-[0.9rem] text-soft">
-            {preview.actions.length} step{preview.actions.length === 1 ? "" : "s"} ·{" "}
-            {minutesLabel(planned)} planned
-          </div>
-
-          <div className="space-y-2">
-            {preview.actions.map((a) => (
-              <PlanActionCard key={a.id} action={a} readOnly />
-            ))}
-          </div>
-
-          {preview.actions.length === 0 && (
-            <p className="text-soft">
-              Nothing fits this capacity right now. Try "No limit" on time, or the smaller
-              version below.
-            </p>
-          )}
-
-          <div className="space-y-2">
-            <Button size="lg" onClick={usePlan} disabled={preview.actions.length === 0}>
-              <Sparkles aria-hidden="true" size={19} />
-              Use this plan
-            </Button>
-            <Button variant="soft" size="lg" onClick={() => setShrink((s) => !s)}>
-              <Feather aria-hidden="true" size={18} />
-              {shrink ? "Back to full size" : "Make it smaller"}
-            </Button>
-          </div>
-          <p className="text-[0.9rem] text-soft">
-            Anything not in the plan stays safely in your task list. Finish early? You can always
-            generate more.
-          </p>
-        </section>
-      )}
-
-      {!capacity && (
-        <p className="text-center text-soft">Pick how today feels and the plan appears here.</p>
-      )}
-      </div>
+      <section aria-label="Plan preview" className="min-w-0 space-y-3">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <SectionTitle className="mr-auto">Preview</SectionTitle>
+          <Chip tone="brand">up to {minutesLabel(preview.budgetMinutes)}</Chip>
+          {mLabel && <Chip tone="brand">adjusted {mLabel} from your reflections</Chip>}
+          {shrink && <Chip tone="good">smaller version</Chip>}
+        </div>
+        <p aria-live="polite" className="text-[0.9rem] text-soft">
+          {preview.actions.length} step{preview.actions.length === 1 ? "" : "s"} · {minutesLabel(planned)} planned
+        </p>
+        <div className="space-y-2">
+          {preview.actions.map((a) => (
+            <StepCard
+              key={a.id}
+              action={a}
+              taskTitle={data.taskById.get(a.taskId)?.title}
+              taskOrder={taskOrder}
+              readOnly
+            />
+          ))}
+        </div>
+        {preview.actions.length === 0 && (
+          <p className="text-soft">Nothing fits this capacity right now. Try a little more, or the smaller version.</p>
+        )}
+        <Button variant="soft" size="lg" onClick={() => setShrink((s) => !s)}>
+          <Feather aria-hidden="true" size={18} />
+          {shrink ? "Back to full size" : "Make it smaller"}
+        </Button>
+      </section>
     </div>
   );
 }

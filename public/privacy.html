@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy · Pace</title>
+    <meta name="description" content="What Pace stores, what it sends to make a plan, and what it never asks for." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      :root { color-scheme: dark; }
+      body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.55; max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; color: #ece9e1; background: #16181d; }
+      h1 { font-family: Georgia, "Iowan Old Style", serif; font-weight: 500; font-size: 2.2rem; line-height: 1.1; margin: 0 0 0.5rem; }
+      h2 { font-family: Georgia, serif; font-weight: 500; font-size: 1.35rem; margin: 2rem 0 0.5rem; }
+      p, li { font-size: 1.05rem; }
+      code { background: #262a31; color: #ece9e1; padding: 0.1rem 0.35rem; border-radius: 0.35rem; font-size: 0.95em; }
+      a { color: #9fd9cf; }
+      .muted { opacity: 0.75; font-size: 0.95rem; }
+    </style>
+  </head>
+  <body>
+    <p><a href="/">← Back to Pace</a></p>
+    <h1>Privacy</h1>
+
+    <p>I developed Pace to help students return to schoolwork after a disruption. I designed it so that you can plan your work without explaining what happened.</p>
+
+    <h2>What Pace stores, and where</h2>
+    <p>Your tasks, steps, check-ins, plans, focus sessions, reflections, and settings live in your browser's local storage (IndexedDB) on your device. There is no account and no server-side database. You can export everything as a JSON file, import it on another device, or delete it all from Settings at any time.</p>
+
+    <h2>What Pace sends to make a plan</h2>
+    <p>I use a language model in Pace to write your daily plan, break tasks into steps, read pasted text or photos, and draft teacher messages. I route these requests through Pace's own serverless function to the model provider. Each request contains only what that feature needs:</p>
+    <ul>
+      <li><strong>Planning:</strong> task titles, course names, due dates, estimates, difficulty and importance ratings, step titles, today's dial and time windows, and short plain-language facts Pace learned (for example, "Biology work tends to take 1.6x the estimate").</li>
+      <li><strong>Breaking a task into steps:</strong> that task's details, plus any assignment text you chose to paste for it.</li>
+      <li><strong>Capture:</strong> the text or photo you chose to drop in.</li>
+      <li><strong>Teacher message:</strong> the neutral reason phrase and requests you picked, your optional commitment, the names you typed, and a reply you chose to paste.</li>
+    </ul>
+    <p>Pace never sends your private task notes (unless you paste them into Capture yourself), your name as a profile, your reflections, or any medical or personal detail.</p>
+    <p>I keep Pace's serverless function stateless: it forwards the request and streams the answer back without keeping a copy or logging the content. Every request asks the provider not to keep a retrievable copy.</p>
+    <p>If the planner cannot be reached, Pace plans entirely on your device with its built-in scheduler, and nothing leaves your browser.</p>
+
+    <h2>Calendar feeds</h2>
+    <p>If you connect a Canvas or Google Calendar feed link, Pace fetches it through its serverless function (browsers block the direct read) and parses it on your device. The function does not store the link or the calendar. The link is kept in your browser's local storage; treat it like a password, since anyone with it can read that calendar.</p>
+
+    <h2>No tracking</h2>
+    <p>I do not use advertising, third-party scripts, or cookies in Pace. Fonts are served from Pace itself. The anonymous device token Pace generates is random, is not tied to your identity, and is used only to rate-limit the public planner.</p>
+
+    <h2>Questions</h2>
+    <p>You can contact me at <a href="mailto:sohanm4364@gmail.com?subject=Pace%20privacy">sohanm4364@gmail.com</a>. I have made the code open source so that the implementation can be checked against this policy.</p>
+  </body>
+</html>

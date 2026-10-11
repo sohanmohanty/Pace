@@ -1,88 +1,79 @@
 # Pace
 
-A mobile-first re-entry planning app for students returning from invisible disruptions.
+A planner that plans around how you actually feel.
 
-**Live app:** [pace-student.vercel.app](https://pace-student.vercel.app/)
+I developed Pace as a planner for students returning to schoolwork after an illness, concussion, family emergency, burnout, or another disruption. The app lets students choose how much they can manage today and selects steps that fit. Each step includes a reason, and unfinished work can wait without counting against them.
 
-**Try it in ten seconds:** open the app → "Show me some example tasks" → pick how today feels → get a plan.
+Live: [planwithpace.app](https://planwithpace.app/) · Planner walkthrough: [planwithpace.app/how](https://planwithpace.app/how)
 
-## Problem
+To try Pace, open the app and move the dial on the landing page. The plan adjusts as you move it. Select Start to continue.
 
-Students who miss school after health-related, personal, or other invisible disruptions come back to a pile-up: overdue work, missed notes, teachers to contact, and no idea how much is realistic today. Traditional productivity tools assume consistent capacity and punish inconsistency with guilt mechanics: streaks, red badges, "13 overdue."
+---
 
-Pace treats inconsistency as a design condition, not a character flaw. It adapts the plan to the student's capacity instead of making the student feel like they failed the plan.
+## Capacity and the Day Line
 
-## Features
+I designed Pace around a capacity dial from 0 to 100, which sets the day's minute budget, maximum step length, and number of steps. The Day Line shows those steps as stops along a path and updates as the dial moves. Low-capacity days allow up to three short steps; days with more capacity allow longer blocks. Unfinished steps do not turn red.
 
-- **Capacity check-in:** one question a day: "What kind of day is this?" Low / medium / high / not sure.
-- **Task input:** a one-line quick-add parser (`bio lab due fri ~2h hard #biology @teacher`) plus a full form; one Tasks screen holds catch-up, upcoming, and finished work.
-- **Task breakdown:** templates (essay, test catch-up, reading, project, message) turn big assignments into ordered, editable steps, scaled to the task's size.
-- **Adaptive daily plan:** 3–6 actions selected optimally for today's minute budget, each with a "why this?" explanation.
-- **Low-capacity mode:** one action at a time, large targets, no backlog wall. "One useful step is enough for now."
-- **Teacher-message generator:** neutral reason phrases ("after an unexpected absence"), concrete requests, a commitment line. No diagnosis, ever. Nothing is sent by the app.
-- **Reflection log → real adaptation:** "lighter / same / heavier" feedback multiplies the next plan's budget (clamped ×0.5–×1.5, always shown in the UI).
-- **Weekly reset:** what happened, what's left, which messages would unlock things. No failure states.
-- **Privacy-first local storage:** no account, no server, no trackers. Export, import (merge a backup or move devices), or delete everything, anytime.
-- **Responsive:** phone-first with bottom tabs; at desktop widths (≥1024 px) the same app switches to a sidebar layout with two-column screens. Pure CSS breakpoints, no user-agent sniffing; resize the window and it adapts live.
-- **Demo mode:** a realistic set of example tasks, tagged and clearable separately from real data.
+## What it does
 
-## Design Principles
+I built the following features to support planning, focused work, and a return to schoolwork:
 
-1. Capacity-aware planning
-2. Privacy without forced disclosure
-3. Small steps over guilt
-4. Accessibility-first interface
-5. Explainable recommendations
+- Check in with the dial. Optionally choose available parts of the day, work that feels heavy, a hard time cap, or "not sure, start me gently."
+- Get an immediate plan from the on-device engine, which uses exact knapsack selection over explicit scores. A language model then proposes task-specific steps with reasons and a concrete first action. A deterministic validator checks task and step IDs, sequence, budget, and the message-step cap. The local draft remains available when the model is slow, unreachable, or over its allowance.
+- Work through one step at a time in Focus mode with a count-up timer. Mark it done, report that it is taking longer, or stop. Recorded time helps calibrate estimates.
+- Adjust the rest of the day with an instruction such as "Nothing with reading tonight, 40 minutes." Completed steps stay in the plan.
+- Add tasks through quick-add, a full form, pasted text, or a photo. Extraction includes confidence for each field and highlights the source text. Canvas and Google Calendar feed links keep assignments and fixed events current.
+- Break assignments into task-specific steps, each with a first action. Templates handle breakdowns when AI is off.
+- Draft teacher messages from a neutral reason phrase, specific requests, a tone, and an optional commitment. Reply mode handles follow-ups. A lint check flags medical or family vocabulary in the draft; Pace does not send the message itself.
+- Review seven small Day Lines in Week: past progress, upcoming deadlines and fixed events, workload compared with realistic capacity, and messages that could unblock work.
+- See learned estimates in Insights: actual-to-estimated minutes by class and work type, completion rates by part of day, and the reflection multiplier. These are calculated on the device and can be reset with one button.
+- Choose light, dark, or high contrast, with larger text and reduced motion options. The app supports keyboard navigation, native inputs, and live regions. Ctrl+K or ⌘K opens the command palette.
 
-## Design Decisions
+## Privacy
 
-**Why local-first?** No login friction, no sensitive data in transit, offline by default, and a privacy story that is honest: "Pace does not ask for diagnosis or medical details. Data is stored locally by default. You can delete it anytime."
+I designed Pace to work without an account. I do not use analytics or externally hosted scripts, and I host the fonts with the app. Pace stores tasks, plans, and settings in IndexedDB in your browser. Settings provides controls to export, import, or delete that data.
 
-**Why no AI/LLM?** A deliberate choice, not a gap. Task breakdown, message generation, and planning are deterministic and template-based because (a) a student's backlog should never be sent to a third-party API, (b) every recommendation must be explainable: each plan action carries the exact factors that put it there, and (c) rules are testable; 62 unit tests lock the behavior. A black box that is right 95% of the time is worse here than a transparent system that can always answer "why?"
+For AI planning, I send task details, steps, your check-in, available time, fixed events, and short learned facts through a serverless function to the model provider. Replanning also includes completed steps and the instruction entered. I exclude private task notes, your profile name, and raw reflection records from planning requests and set `store: false`. If the planner is unreachable, the local engine handles planning on the device.
 
-**Why a scoring + knapsack scheduler instead of ML?** Plan selection is a genuine optimization problem: maximize the value of chosen actions subject to a minute budget and an action cap. That is a bounded knapsack, solved exactly with dynamic programming (greedy provably picks worse plans: one big high-scoring item can crowd out two smaller ones that together matter more). Transparent factor scoring + exact selection + human-readable reasons beats an opaque model at this scale.
+I designed Pace to support a return to schoolwork without requiring an explanation of what happened.
 
-**Why no streaks, badges, or failure states?** The target moment is a student on their worst week. Unfinished plan actions silently return to the pool. Past-due work says "was due Jun 28," never "OVERDUE ×13." Regenerating a plan never erases completed progress.
+Further details are available in the [privacy policy](https://planwithpace.app/privacy.html).
 
-## Algorithm
+## How I structured the planner
 
-1. **Eligibility:** only the earliest incomplete step of each task is a candidate (templates encode real sequences); communication steps are exempt and can always surface; oversized work is chunked ("Spend 35 min on…") or, on low-capacity days, transformed into a starter step; at most 2 candidates per task.
-2. **Scoring:** urgency (due date) ×1.5 + importance ×1.2 + communication boost + capacity fit + quick-win bonus. Every factor is kept for the UI's "why this?" line.
-3. **Selection:** exact bounded-knapsack DP over (candidates ≤ 80, minutes ≤ 240, actions ≤ 6): `dp[i][c][m] = max(dp[i-1][c][m], dp[i-1][c-1][m-w] + v)`, with backward reconstruction of the chosen set.
-4. **Ordering:** communication first, then urgency. A fallback guarantees the plan is never empty while tasks exist.
-5. **Adaptation:** recent reflections multiply the minute budget (×0.85 per "lighter", ×1.12 per "heavier", decay toward 1.0 on "same"; clamped 0.5–1.5; displayed as "adjusted −15% from your reflections").
+I organized planning around the following sequence:
 
-Budgets by capacity: low 30 min / 3 actions · medium 90 / 5 · high 150 / 6 · unsure 45 / 3.
+```
+check-in ─► Context Builder ─► language model ─► Validator ─► Day Line
+                 │                                        ▲
+                 └─► local engine: score → exact knapsack → fill → place ──┘ (instant draft + fallback)
+```
 
-## Accessibility
+1. The dial maps to a base minute budget and maximum step length through monotonic, piecewise-linear curves. The base budget is 15 minutes at 0, 90 at 62, and 200 at 100; the maximum step length ranges from 10 to 60 minutes. Low-, medium-, and high-capacity plans allow up to 3, 5, and 6 starting steps, respectively, with up to 0, 3, and 4 follow-on steps.
+2. The local engine considers the earliest unfinished step of each task. It divides oversized steps into shorter chunks or replaces them with a starting step. Message steps are exempt from sequence and capped at one, or two on high-capacity days.
+3. Each candidate receives a score: urgency×1.5 + importance×1.2 + message boost + capacity fit + quick-win bonus, minus a penalty for work marked heavy today. The same factors supply the "why now" explanation.
+4. An exact bounded knapsack solver selects the highest-scoring combination within the minute budget and starting-step limit, then works backward to identify the selected steps. Choosing the highest-scoring step first can produce a worse combination.
+5. The engine adds subsequent steps from selected tasks while the budget and follow-on limit allow, then places them in the student's available time windows.
+6. The model receives a bounded JSON context and returns a strict JSON response containing reasoning, actions, and deferred tasks. The validator drops unknown IDs and out-of-order steps, limits step lengths, and trims proposals that exceed the budget using the same knapsack solver with a preference for the model's suggested order. It also caps messages and adjusts windows. Internal correction counts are used in the evaluation suite and are not shown to students.
+7. The app learns median actual-to-estimated time ratios by class and work type, with estimates pulled toward a ratio of 1.0 when data is limited. Calibration applies after at least three samples. It also tracks completion rates by part of day. Reflections adjust the budget multiplier: ×0.85 for lighter, ×1.12 for heavier, and a return toward neutral for the same workload, bounded between 0.5 and 1.5.
 
-Verifiable targets, not vibes:
+The `/how` walkthrough runs this code on a sample backlog.
 
-- Fully usable with keyboard only: visible focus rings, skip link, focus moves to the page on navigation.
-- WCAG 2.2 AA contrast; **high-contrast mode** (runtime token swap) and **larger-text mode** built in.
-- `prefers-reduced-motion` respected automatically, plus a manual toggle.
-- Native inputs everywhere (radios, checkboxes, `<details>`), labeled controls, `aria-live` announcements for plan updates and confirmations.
-- No flashing content, no drag-and-drop requirements, ≥44 px touch targets.
+## Stack
 
-## Tech Stack
+I built Pace with React, strict TypeScript, Vite, and Tailwind CSS with OKLCH tokens. Motion handles animation, while React Aria Components and cmdk provide accessible controls and the command palette. Dexie wraps IndexedDB, and the client and server share Zod schemas.
 
-React 19 · TypeScript (strict) · Vite 7 · Tailwind CSS 4 (design tokens as CSS variables) · Dexie (IndexedDB) · vite-plugin-pwa (offline-capable, installable) · Vitest (62 tests).
+I use the OpenAI SDK for structured outputs and streaming through Vercel serverless functions, and vite-plugin-pwa for the PWA. I check the app with Vitest, Playwright with axe-core, and Lighthouse CI.
 
-## Getting Started
+## Running it
 
 ```bash
 npm install
-npm run dev        # local dev server
-npm test           # unit tests (scheduler, parser, templates, adaptation, messages, dates, import)
-npm run build      # typecheck + production build (dist/)
-npm run icons      # regenerate PWA icons (zero-dependency PNG generator)
+npm run dev          # app + API at http://localhost:5173 (mock AI unless configured)
+npm test             # unit tests: capacity model, scheduler, validator, Day Line layout, parser, lint, learning, ICS
+npm run e2e          # Playwright journeys + axe on every route in three themes
+npm run build        # typecheck + production build
 ```
-
-Deploy the `dist/` folder anywhere static. SPA fallbacks for Vercel (`vercel.json`) and Netlify (`netlify.toml`) are included.
-
-## Disclaimer
-
-Pace is not a medical tool and does not provide medical advice. It is a planning app for students returning from disruptions. You never need to enter a diagnosis or any medical details. Data is stored locally by default and can be deleted at any time.
 
 ## License
 

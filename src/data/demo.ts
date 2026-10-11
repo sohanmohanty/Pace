@@ -1,5 +1,5 @@
-// Sample tasks: realistic, gently varied, tagged demo:1 so they can be
-// cleared separately from real data. No teacher names, no medical details.
+// Tag sample tasks with demo:1 so they can be cleared separately. Include
+// varied tasks without teacher names or medical details.
 import { db } from "./db";
 import type { Subtask, Task } from "./types";
 import { addDaysISO, todayISO } from "../lib/dates";

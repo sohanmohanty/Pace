@@ -1,7 +1,16 @@
-// Pure validation for imported export files: no database imports, so it's
-// unit-testable in isolation. Malformed records are skipped, not fatal; a
-// fundamentally wrong file throws with a human message.
-import type { CheckIn, Plan, Reflection, Settings, Subtask, Task } from "./types";
+// Validate backups without database access so validation can be tested
+// separately. Skip malformed records; reject invalid file structure with
+// a readable error.
+import type {
+  CheckIn,
+  FixedEvent,
+  FocusSession,
+  Plan,
+  Reflection,
+  Settings,
+  Subtask,
+  Task
+} from "./types";
 
 export interface ImportPayload {
   tasks: Task[];
@@ -9,6 +18,9 @@ export interface ImportPayload {
   checkIns: CheckIn[];
   plans: Plan[];
   reflections: Reflection[];
+  /** Empty when importing a backup that predates these tables. */
+  sessions: FocusSession[];
+  events: FixedEvent[];
   settings?: Settings;
 }
 
@@ -43,16 +55,32 @@ export function sanitizeImport(data: unknown): ImportPayload {
     (r) => typeof r.date === "string" && Array.isArray(r.actions)
   );
   const reflections = pickValid<Reflection>(data.reflections, (r) => typeof r.date === "string");
+  const sessions = pickValid<FocusSession>(
+    data.sessions,
+    (r) => typeof r.date === "string" && typeof r.taskId === "string"
+  );
+  const events = pickValid<FixedEvent>(
+    data.events,
+    (r) => typeof r.date === "string" && typeof r.title === "string"
+  );
 
   let settings: Settings | undefined;
   const rawSettings = Array.isArray(data.settings) ? data.settings[0] : data.settings;
   if (isRecord(rawSettings) && rawSettings.id === "app") {
-    // Whoever imports is already using the app, so never bounce them back
-    // to onboarding because of a stale flag in the file.
+    // Keep the importing user onboarded even if the backup has a stale flag.
     settings = { ...(rawSettings as unknown as Settings), onboarded: true };
   }
 
-  const payload: ImportPayload = { tasks, subtasks, checkIns, plans, reflections, settings };
+  const payload: ImportPayload = {
+    tasks,
+    subtasks,
+    checkIns,
+    plans,
+    reflections,
+    sessions,
+    events,
+    settings
+  };
   if (importedCount(payload) === 0 && !settings) {
     throw new Error("That file doesn't contain any Pace data.");
   }
@@ -61,6 +89,12 @@ export function sanitizeImport(data: unknown): ImportPayload {
 
 export function importedCount(p: ImportPayload): number {
   return (
-    p.tasks.length + p.subtasks.length + p.checkIns.length + p.plans.length + p.reflections.length
+    p.tasks.length +
+    p.subtasks.length +
+    p.checkIns.length +
+    p.plans.length +
+    p.reflections.length +
+    p.sessions.length +
+    p.events.length
   );
 }

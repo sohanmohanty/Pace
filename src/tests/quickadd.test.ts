@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseQuickAdd } from "../logic/quickadd";
 
-// 2026-07-01 is a Wednesday.
+// The fixture day is a Wednesday.
 const TODAY = "2026-07-01";
 
 describe("quick-add parser", () => {
@@ -30,7 +30,7 @@ describe("quick-add parser", () => {
 
   it("parses M/D dates in the current year, allowing past dates", () => {
     const p = parseQuickAdd("makeup lab due 6/20", TODAY);
-    expect(p.dueDate).toBe("2026-06-20"); // overdue on purpose; that's re-entry
+    expect(p.dueDate).toBe("2026-06-20"); // Accept past dates for catch-up work.
   });
 
   it("parses duration ranges as midpoints", () => {

@@ -1,30 +1,66 @@
-import { db, DEFAULT_SETTINGS } from "./db";
+import { db, DEFAULT_PROFILE, DEFAULT_SETTINGS } from "./db";
 import { importedCount, sanitizeImport } from "./importValidate";
 import type {
   CapacityLevel,
   CheckIn,
+  DayWindow,
+  FixedEvent,
+  FocusSession,
   Level,
   Plan,
   PlanAction,
+  Profile,
   Reflection,
   Settings,
   Subtask,
-  Task
+  Task,
+  WorkType
 } from "./types";
 import { todayISO } from "../lib/dates";
 import { uid } from "../lib/id";
+import { capacityForDial, clampDial } from "../logic/capacity";
 import type { BuiltPlan } from "../logic/scheduler";
 
 const now = () => new Date().toISOString();
 
-// ---- Settings ---------------------------------------------------------------
+// Settings
 
 export async function getSettings(): Promise<Settings> {
-  return (await db.settings.get("app")) ?? DEFAULT_SETTINGS;
+  const stored = await db.settings.get("app");
+  if (!stored) return DEFAULT_SETTINGS;
+  // Older records predate `theme` and `aiEnabled`; fill them in without writing.
+  return {
+    ...DEFAULT_SETTINGS,
+    ...stored,
+    theme: stored.theme ?? (stored.highContrast ? "hc" : "dark"),
+    aiEnabled: stored.aiEnabled ?? true
+  };
+}
+
+// Profile (what Pace has learned; local, visible, deletable)
+
+export async function getProfile(): Promise<Profile> {
+  const stored = await db.profile.get("me");
+  if (stored) return { ...DEFAULT_PROFILE, ...stored };
+  const fresh: Profile = { ...DEFAULT_PROFILE, deviceToken: uid() };
+  await db.profile.put(fresh);
+  return fresh;
+}
+
+export async function updateProfile(patch: Partial<Profile>): Promise<void> {
+  await db.transaction("rw", db.profile, async () => {
+    const current = (await db.profile.get("me")) ?? { ...DEFAULT_PROFILE, deviceToken: uid() };
+    await db.profile.put({ ...current, ...patch, id: "me" });
+  });
+}
+
+/** Forget everything learned, keep the device token. */
+export async function resetLearning(): Promise<void> {
+  await updateProfile({ calibration: {}, calibrationByType: {}, energy: {} });
 }
 
 export async function updateSettings(patch: Partial<Settings>): Promise<void> {
-  // Read-modify-write inside one transaction, so concurrent toggles can't clobber
+  // Read-modify-write inside one transaction, so concurrent toggles cannot overwrite
   // each other.
   await db.transaction("rw", db.settings, async () => {
     const current = (await db.settings.get("app")) ?? DEFAULT_SETTINGS;
@@ -32,7 +68,7 @@ export async function updateSettings(patch: Partial<Settings>): Promise<void> {
   });
 }
 
-// ---- Tasks ------------------------------------------------------------------
+// Tasks
 
 export interface TaskDraft {
   title: string;
@@ -85,7 +121,7 @@ export async function archiveDoneTasks(): Promise<number> {
   return active.length;
 }
 
-// ---- Subtasks ---------------------------------------------------------------
+// Subtasks
 
 export async function addSubtasks(subtasks: Subtask[]): Promise<void> {
   await db.subtasks.bulkAdd(subtasks);
@@ -149,25 +185,65 @@ export async function toggleSubtaskDone(id: string): Promise<void> {
   });
 }
 
-// ---- Check-ins ----------------------------------------------------------------
+// Check-ins
 
 export async function getTodayCheckIn(): Promise<CheckIn | undefined> {
   const list = await db.checkIns.where("date").equals(todayISO()).toArray();
   return list.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
 }
 
+export interface CheckInInput {
+  dial?: number;
+  capacity?: CapacityLevel;
+  windows?: DayWindow[];
+  heavy?: WorkType[];
+  availableMinutes?: number;
+}
+
+/** Save or replace today's check-in. Accept capacity/minutes arguments or a dial-based input. */
 export async function saveCheckIn(
-  capacity: CapacityLevel,
+  input: CapacityLevel | CheckInInput,
   availableMinutes?: number
 ): Promise<void> {
   const date = todayISO();
+  const data: CheckInInput =
+    typeof input === "string" ? { capacity: input, availableMinutes } : input;
+  const dial = data.dial !== undefined ? clampDial(data.dial) : undefined;
+  const capacity: CapacityLevel =
+    data.capacity === "unsure"
+      ? "unsure"
+      : dial !== undefined
+        ? capacityForDial(dial)
+        : (data.capacity ?? "medium");
   await db.transaction("rw", db.checkIns, async () => {
     await db.checkIns.where("date").equals(date).delete();
-    await db.checkIns.add({ id: uid(), date, capacity, availableMinutes, createdAt: now() });
+    await db.checkIns.add({
+      id: uid(),
+      date,
+      capacity,
+      dial,
+      windows: data.windows && data.windows.length > 0 ? data.windows : undefined,
+      heavy: data.heavy && data.heavy.length > 0 ? data.heavy : undefined,
+      availableMinutes: data.availableMinutes,
+      createdAt: now()
+    });
   });
 }
 
-// ---- Plans --------------------------------------------------------------------
+/** Patch today's check-in in place (used by the adjust controls). */
+export async function updateTodayCheckIn(patch: CheckInInput): Promise<void> {
+  const current = await getTodayCheckIn();
+  await saveCheckIn({
+    dial: current?.dial,
+    capacity: current?.capacity,
+    windows: current?.windows,
+    heavy: current?.heavy,
+    availableMinutes: current?.availableMinutes,
+    ...patch
+  });
+}
+
+// Plans
 
 export async function getTodayPlan(): Promise<Plan | undefined> {
   const list = await db.plans.where("date").equals(todayISO()).toArray();
@@ -175,9 +251,8 @@ export async function getTodayPlan(): Promise<Plan | undefined> {
 }
 
 /**
- * Save today's plan, replacing any existing one. Regenerating never erases
- * progress: repeated steps keep their completion, and steps completed earlier
- * today that aren't in the new plan are carried over as finished items.
+ * Replace today's plan while preserving progress. Repeated steps keep their
+ * completion state; completed steps omitted from the new plan are carried over.
  */
 export async function savePlanForToday(built: BuiltPlan): Promise<Plan> {
   const date = todayISO();
@@ -194,23 +269,38 @@ export async function savePlanForToday(built: BuiltPlan): Promise<Plan> {
     const carried = existing[0]
       ? existing[0].actions.filter((a) => a.completed && !newKeys.has(key(a)))
       : [];
+    // Preserve IDs for surviving steps to avoid remounts and lost focus, allow
+    // layout animation, and keep in-flight toggles pointed at the same action.
+    const previousByKey = new Map(existing[0]?.actions.map((a) => [key(a), a]) ?? []);
     const actions = [
       ...carried,
-      ...built.actions.map((a) => (completedKeys.has(key(a)) ? { ...a, completed: true } : a))
+      ...built.actions.map((a) => {
+        const prev = previousByKey.get(key(a));
+        const completed = completedKeys.has(key(a));
+        return prev ? { ...a, id: prev.id, completed } : completed ? { ...a, completed: true } : a;
+      })
     ];
     await db.plans.where("date").equals(date).delete();
     const plan: Plan = {
       id: uid(),
       date,
       capacity: built.capacity,
+      dial: built.dial,
       budgetMinutes: built.budgetMinutes,
       multiplier: built.multiplier,
       actions,
+      source: built.source,
+      reasoning: built.reasoning,
       createdAt: now()
     };
     await db.plans.add(plan);
     return plan;
   });
+}
+
+/** Reorder or re-window today's plan actions without regenerating. */
+export async function updatePlanActions(planId: string, actions: PlanAction[]): Promise<void> {
+  await db.plans.update(planId, { actions });
 }
 
 /**
@@ -278,10 +368,7 @@ export async function togglePlanAction(planId: string, actionId: string): Promis
   });
 }
 
-/**
- * Idempotent "mark done": a double-tap on a Done button must never
- * un-complete the step the way a second toggle would.
- */
+/** Mark done idempotently so a double-tap cannot undo completion. */
 export async function completePlanAction(planId: string, actionId: string): Promise<void> {
   await db.transaction("rw", db.plans, db.subtasks, db.tasks, async () => {
     const plan = await db.plans.get(planId);
@@ -296,7 +383,7 @@ export async function listPlansSince(fromISO: string): Promise<Plan[]> {
   return db.plans.where("date").aboveOrEqual(fromISO).toArray();
 }
 
-// ---- Reflections ---------------------------------------------------------------
+// Reflections
 
 export async function addReflection(
   input: Omit<Reflection, "id" | "createdAt">
@@ -308,20 +395,93 @@ export async function listReflections(): Promise<Reflection[]> {
   return db.reflections.toArray();
 }
 
-// ---- Privacy: export / delete ----------------------------------------------------
+// Focus sessions
+
+export async function startSession(input: {
+  taskId: string;
+  subtaskId?: string;
+  actionId?: string;
+  estimatedMinutes?: number;
+  workType?: WorkType;
+  course?: string;
+}): Promise<string> {
+  const id = uid();
+  await db.sessions.add({
+    id,
+    date: todayISO(),
+    startedAt: now(),
+    ...input
+  });
+  return id;
+}
+
+export async function endSession(
+  id: string,
+  outcome: NonNullable<FocusSession["outcome"]>
+): Promise<FocusSession | undefined> {
+  return db.transaction("rw", db.sessions, async () => {
+    const s = await db.sessions.get(id);
+    if (!s || s.endedAt) return s;
+    const endedAt = now();
+    const minutes = Math.max(
+      1,
+      Math.round((new Date(endedAt).getTime() - new Date(s.startedAt).getTime()) / 60000)
+    );
+    const done: FocusSession = { ...s, endedAt, minutes, outcome };
+    await db.sessions.put(done);
+    return done;
+  });
+}
+
+export async function listSessionsSince(fromISO: string): Promise<FocusSession[]> {
+  return db.sessions.where("date").aboveOrEqual(fromISO).toArray();
+}
+
+/** Minutes actually spent today on each plan action id. */
+export async function minutesByAction(date = todayISO()): Promise<Record<string, number>> {
+  const list = await db.sessions.where("date").equals(date).toArray();
+  const out: Record<string, number> = {};
+  for (const s of list) {
+    if (!s.actionId || !s.minutes) continue;
+    out[s.actionId] = (out[s.actionId] ?? 0) + s.minutes;
+  }
+  return out;
+}
+
+// Fixed events
+
+export async function addEvent(e: Omit<FixedEvent, "id">): Promise<string> {
+  const id = uid();
+  await db.events.add({ ...e, id });
+  return id;
+}
+
+export async function deleteEvent(id: string): Promise<void> {
+  await db.events.delete(id);
+}
+
+export async function listEventsBetween(fromISO: string, toISO: string): Promise<FixedEvent[]> {
+  return db.events.where("date").between(fromISO, toISO, true, true).toArray();
+}
+
+// Privacy: export / delete
 
 export async function exportAll(): Promise<Record<string, unknown>> {
-  const [tasks, subtasks, checkIns, plans, reflections, settings] = await Promise.all([
-    db.tasks.toArray(),
-    db.subtasks.toArray(),
-    db.checkIns.toArray(),
-    db.plans.toArray(),
-    db.reflections.toArray(),
-    db.settings.toArray()
-  ]);
+  const [tasks, subtasks, checkIns, plans, reflections, settings, sessions, events, profile] =
+    await Promise.all([
+      db.tasks.toArray(),
+      db.subtasks.toArray(),
+      db.checkIns.toArray(),
+      db.plans.toArray(),
+      db.reflections.toArray(),
+      db.settings.toArray(),
+      db.sessions.toArray(),
+      db.events.toArray(),
+      db.profile.toArray()
+    ]);
   return {
     app: "Pace",
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     note: "Your data. Pace stores everything locally on your device.",
     tasks,
@@ -329,27 +489,31 @@ export async function exportAll(): Promise<Record<string, unknown>> {
     checkIns,
     plans,
     reflections,
-    settings
+    settings,
+    sessions,
+    events,
+    profile
   };
 }
 
 /**
- * Merge a Pace export file into this device. Nothing is deleted: unrelated
- * records are untouched, records with the same id are updated to the file's
- * version, and new records are added. Validation happens before any write,
- * and all writes share one transaction, so a bad file can't half-import.
+ * Merge a backup: update matching IDs, add new records, and leave unrelated
+ * records intact. Validate before writing and use one transaction to avoid
+ * a partial import.
  */
 export async function importData(raw: unknown): Promise<number> {
   const payload = sanitizeImport(raw);
   await db.transaction(
     "rw",
-    [db.tasks, db.subtasks, db.checkIns, db.plans, db.reflections, db.settings],
+    [db.tasks, db.subtasks, db.checkIns, db.plans, db.reflections, db.settings, db.sessions, db.events],
     async () => {
       await db.tasks.bulkPut(payload.tasks);
       await db.subtasks.bulkPut(payload.subtasks);
       await db.checkIns.bulkPut(payload.checkIns);
       await db.plans.bulkPut(payload.plans);
       await db.reflections.bulkPut(payload.reflections);
+      await db.sessions.bulkPut(payload.sessions);
+      await db.events.bulkPut(payload.events);
       if (payload.settings) await db.settings.put(payload.settings);
     }
   );

@@ -95,11 +95,10 @@ export function TasksPage() {
       <div className="lg:col-span-2">
         <PageHeader
           title="Tasks"
-          subtitle="Everything in one place, no shame attached."
           action={
-            <Button onClick={() => navigate("/add")}>
+            <Button onClick={() => navigate("/capture")}>
               <Plus aria-hidden="true" size={20} />
-              Add
+              Add task
             </Button>
           }
         />
@@ -136,7 +135,7 @@ export function TasksPage() {
                 onClick={() => setFilter(f.id)}
                 className={`rounded-full border-[1.5px] px-3 py-1.5 text-[0.9rem] font-medium transition-colors ${
                   filter === f.id
-                    ? "border-brand bg-brand text-white"
+                    ? "border-brand bg-brand text-on-brand"
                     : "border-line bg-surface text-ink hover:bg-bg"
                 }`}
               >
@@ -147,7 +146,6 @@ export function TasksPage() {
 
           <Group
             title="Catch-up"
-            hint="past due; these can restart small"
             tasks={overdue}
             subsByTask={subsByTask}
           />
@@ -168,19 +166,26 @@ export function TasksPage() {
           <QuickAdd />
         </Card>
         <Link
-          to="/reset"
-          className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4 font-medium"
+          to="/capture?tab=feed"
+          className="flex items-center justify-between rounded-[1rem] border border-line bg-surface p-4 font-medium hover:border-line-strong"
         >
-          Weekly reset: see what changed
+          Connect a calendar feed
+          <ArrowRight aria-hidden="true" size={20} />
+        </Link>
+        <Link
+          to="/week"
+          className="flex items-center justify-between rounded-[1rem] border border-line bg-surface p-4 font-medium hover:border-line-strong"
+        >
+          See the week
           <ArrowRight aria-hidden="true" size={20} />
         </Link>
       </aside>
 
       <Link
-        to="/reset"
-        className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4 font-medium lg:hidden"
+        to="/week"
+        className="flex items-center justify-between rounded-[1rem] border border-line bg-surface p-4 font-medium lg:hidden"
       >
-        Weekly reset: see what changed
+        See the week
         <ArrowRight aria-hidden="true" size={20} />
       </Link>
     </div>
