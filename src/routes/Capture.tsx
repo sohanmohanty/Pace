@@ -39,14 +39,14 @@ export function Capture() {
     <div className="space-y-5">
       <PageHeader title="Add a task" subtitle="Type one line, paste a page, snap a photo, or connect a calendar." />
 
-      <div role="tablist" aria-label="Ways to add" className="no-scrollbar flex gap-1.5 overflow-x-auto">
+      <div role="tablist" aria-label="Ways to add" className="flex flex-wrap gap-1.5">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             role="tab"
             aria-selected={tab === id}
             onClick={() => setTab(id)}
-            className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border-[1.5px] px-3.5 text-[0.92rem] font-medium transition-colors ${
+            className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border-[1.5px] px-3.5 text-[0.92rem] font-medium transition-colors ${
               tab === id ? "border-brand bg-brand text-on-brand" : "border-line bg-surface text-ink hover:border-line-strong"
             }`}
           >
@@ -303,11 +303,11 @@ function PasteOrPhoto() {
                     <div className="min-w-0 flex-1 space-y-2">
                       <input className="input mt-0 font-medium" value={it.title} onChange={(e) => update(it.key, { title: e.target.value })} aria-label="Title" />
                       <div className="grid grid-cols-2 gap-2">
-                        <label className="block text-[0.85rem] text-soft">
+                        <label className="block min-w-0 text-[0.85rem] text-soft">
                           Due {it.confidence.dueDate < 0.6 && <Chip tone="warn">guess</Chip>}
                           <input type="date" className="input mt-1" value={it.dueDate ?? ""} onChange={(e) => update(it.key, { dueDate: e.target.value || null })} />
                         </label>
-                        <label className="block text-[0.85rem] text-soft">
+                        <label className="block min-w-0 text-[0.85rem] text-soft">
                           Class {it.confidence.course < 0.6 && <Chip tone="warn">guess</Chip>}
                           <input className="input mt-1" value={it.course ?? ""} onChange={(e) => update(it.key, { course: e.target.value || null })} list="capture-courses" />
                         </label>

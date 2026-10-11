@@ -295,6 +295,20 @@ main:focus-visible {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
+/* I allow date inputs to shrink like text inputs so their intrinsic minimum
+   width in WebKit and Blink does not push them past their columns on phones. */
+.input[type="date"] {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.input[type="date"]::-webkit-date-and-time-value {
+  min-height: 1.5rem;
+  text-align: left;
+}
+
 .input:hover {
   border-color: var(--line-strong);
 }

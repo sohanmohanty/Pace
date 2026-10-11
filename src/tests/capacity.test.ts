@@ -14,7 +14,7 @@ describe("capacity model", () => {
     expect(clampDial(-5)).toBe(0);
     expect(clampDial(140)).toBe(100);
     expect(clampDial(42.6)).toBe(43);
-    expect(clampDial(Number.NaN)).toBe(55);
+    expect(clampDial(Number.NaN)).toBe(50);
   });
 
   it("derives the old labels from the dial", () => {

@@ -23,13 +23,13 @@ const VERBOSE = process.env.PACE_EVAL_VERBOSE === "1";
 function invariants(label: string, actions: { estimatedMinutes: number; subtaskId?: string; taskId: string; reason: string }[], sc: Scenario, budget: number) {
   const total = actions.reduce((s, a) => s + a.estimatedMinutes, 0);
   expect(total, `${label}: over budget`).toBeLessThanOrEqual(budget);
-  const params = paramsForDial(sc.checkIn.dial ?? 55);
+  const params = paramsForDial(sc.checkIn.dial ?? 50);
   for (const a of actions) expect(a.estimatedMinutes, `${label}: step too long`).toBeLessThanOrEqual(params.maxBlock);
   expect(actions.length, `${label}: too many actions`).toBeLessThanOrEqual(params.maxActions + params.maxChained);
   const ids = new Set(sc.tasks.map((t) => t.id));
   for (const a of actions) expect(ids.has(a.taskId), `${label}: unknown task`).toBe(true);
   const comm = actions.filter((a) => a.reason === "communication").length;
-  expect(comm, `${label}: too many messages`).toBeLessThanOrEqual(capacityForDial(sc.checkIn.dial ?? 55) === "high" ? 2 : 1);
+  expect(comm, `${label}: too many messages`).toBeLessThanOrEqual(capacityForDial(sc.checkIn.dial ?? 50) === "high" ? 2 : 1);
   // Sequence: a step's unfinished predecessors must appear earlier.
   const seen = new Set<string>();
   for (const a of actions) {

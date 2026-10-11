@@ -19,7 +19,7 @@ import { narratePlan } from "../logic/narrate";
 export function Landing() {
   const settings = useContext(SettingsContext);
   const onboarded = settings?.onboarded ?? false;
-  const [dial, setDial] = useState(58);
+  const [dial, setDial] = useState(50);
   const { tasks } = useMemo(() => sampleTasks(), []);
   const taskOrder = useMemo(() => taskOrderFor(tasks), [tasks]);
   const planDial = Math.round(dial);

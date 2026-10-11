@@ -79,7 +79,7 @@ export function TaskForm({
       </Field>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Class" hint="optional">
+        <Field label="Class" hint="optional" className="min-w-0">
           <input
             className="input"
             value={course}
@@ -93,7 +93,7 @@ export function TaskForm({
             ))}
           </datalist>
         </Field>
-        <Field label="Due date" hint="optional">
+        <Field label="Due date" hint="optional" className="min-w-0">
           <input
             className="input"
             type="date"

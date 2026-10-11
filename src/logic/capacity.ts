@@ -15,7 +15,7 @@ export const MAX_DAY_MINUTES = 200;
 export const DIAL_FOR: Record<CapacityLevel, number> = {
   low: 20,
   unsure: 35,
-  medium: 55,
+  medium: 50,
   high: 85
 };
 
