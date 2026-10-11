@@ -110,7 +110,7 @@ export default defineConfig(({ mode }) => {
           name: "Pace: a planner that plans around how you feel",
           short_name: "Pace",
           description:
-            "A capacity-aware planner that helps students restart after falling behind. Your tasks stay on your device.",
+            "A capacity-aware planner for students. Say how much you have today and get a plan that fits. Your tasks stay on your device.",
           theme_color: "#1a1c22",
           background_color: "#1a1c22",
           display: "standalone",
