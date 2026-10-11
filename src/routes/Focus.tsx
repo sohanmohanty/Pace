@@ -40,6 +40,8 @@ export function Focus() {
   const data = usePlannerData();
 
   const [sessionId, setSessionId] = useState<string | null>(null);
+  // The in-flight startSession call, so a fast "Done" still closes the right session.
+  const sessionStart = useRef<Promise<string> | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [finishing, setFinishing] = useState(false);
   const started = useRef<string | null>(null);
@@ -60,14 +62,16 @@ export function Focus() {
     started.current = action.id;
     const t0 = Date.now();
     setStartedAt(t0);
-    startSession({
+    const pending = startSession({
       taskId: action.taskId,
       subtaskId: action.subtaskId,
       actionId: action.id,
       estimatedMinutes: action.estimatedMinutes,
       workType: action.workType,
       course: task?.course
-    }).then(setSessionId);
+    });
+    sessionStart.current = pending;
+    pending.then(setSessionId);
   }, [action, task]);
 
   const now = useTicker(Boolean(startedAt) && !finishing);
@@ -78,8 +82,9 @@ export function Focus() {
     if (!plan || !action || finishing) return;
     setFinishing(true);
     try {
-      if (sessionId) {
-        await endSession(sessionId, outcome);
+      const id = sessionId ?? (await sessionStart.current?.catch(() => null)) ?? null;
+      if (id) {
+        await endSession(id, outcome);
         // Recompute local estimates from the last 60 days; show them in Insights.
         const recent = await listSessionsSince(addDaysISO(todayISO(), -60));
         const cal = calibrate(recent);
@@ -90,6 +95,7 @@ export function Focus() {
         const rest = plan.actions.filter((a) => !a.completed && a.id !== action.id);
         toast("That counts.");
         started.current = null;
+        sessionStart.current = null;
         setSessionId(null);
         setStartedAt(null);
         if (rest.length > 0) navigate(`/focus/${rest[0].id}`, { replace: true });

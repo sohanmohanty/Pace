@@ -42,12 +42,19 @@ test.describe("check in, plan, focus, replan", () => {
     await expect(page.getByRole("button", { name: /Done\. That counts/ })).toBeVisible();
     await page.getByRole("button", { name: /Done\. That counts/ }).click();
     await expect(page).toHaveURL(/focus|reflect/);
-    const sessions = await page.evaluate(async () => {
-      const { db } = await import(/* @vite-ignore */ ("/src/data/" + "db.ts"));
-      return db.sessions.toArray();
-    });
-    expect(sessions.length).toBeGreaterThan(0);
-    expect(sessions[0].outcome).toBe("done");
+    // Finishing navigates to the next step, which opens a fresh session, so look
+    // for the closed one rather than whichever row happens to come first.
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(async () => {
+            const { db } = await import(/* @vite-ignore */ ("/src/data/" + "db.ts"));
+            const sessions = (await db.sessions.toArray()) as { outcome?: string }[];
+            return sessions.filter((s) => s.outcome === "done").length;
+          }),
+        { timeout: 10_000 }
+      )
+      .toBe(1);
   });
 
   test("replan in plain words keeps completed steps", async ({ page }) => {

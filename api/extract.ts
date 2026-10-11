@@ -19,4 +19,3 @@ export const POST = structuredEndpoint({
 /** Streaming model calls can run past Vercel's default function timeout. */
 export const maxDuration = 60;
 
-export default POST;

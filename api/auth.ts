@@ -184,4 +184,3 @@ function emailFromIdToken(idToken: string): string | undefined {
   }
 }
 
-export default GET;

@@ -52,4 +52,3 @@ function isPrivateHost(host: string): boolean {
   return a === 10 || a === 127 || (a === 192 && b === 168) || (a === 172 && b >= 16 && b <= 31) || a === 0 || a === 169;
 }
 
-export default POST;
