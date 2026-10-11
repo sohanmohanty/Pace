@@ -112,7 +112,7 @@ export function TasksPage() {
       {active.length === 0 ? (
         <EmptyState
           title="Nothing here yet"
-          body="Add what's on your plate, or load an example to see how Pace works."
+          body="Add your tasks, or load an example to see how Pace works."
         >
           <Button
             variant="soft"

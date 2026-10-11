@@ -75,6 +75,14 @@ export function Home() {
   const weekPlans = useLiveQuery(() => listPlansSince(addDaysISO(todayISO(), -6)), []);
   const spent = useLiveQuery(() => minutesByAction(), []);
 
+  // Open "Your tasks" initially when there are at most two open tasks.
+  // After initialization, the student controls it; adding a third task leaves it open.
+  const [tasksOpen, setTasksOpen] = useState<boolean | null>(null);
+  const openCount = data.openTasks.length;
+  useEffect(() => {
+    if (tasksOpen === null && data.ready) setTasksOpen(openCount <= 2);
+  }, [tasksOpen, data.ready, openCount]);
+
   const [draft, setDraft] = useState<DraftCheckIn | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -233,7 +241,7 @@ export function Home() {
       {openTasks.length === 0 && !plan ? (
         <div className="space-y-5 lg:mx-auto lg:max-w-xl">
           <EmptyState
-            title="Start with what's on your plate"
+            title="Start with your tasks"
             body="No account, no explanations needed. One line per thing is enough."
           >
             <Button
@@ -253,14 +261,18 @@ export function Home() {
         </div>
       ) : showCheckIn ? (
         <div className="space-y-5">
-          {/* On your plate: one line normally, expandable to add more. Open by
-              default while the list is tiny so adding more is the obvious move. */}
-          <details className="card group px-5 py-3" open={openTasks.length <= 2}>
+          {/* Keep the task summary compact and expandable. Open it initially
+              when there are at most two tasks to make adding tasks easier. */}
+          <details
+            className="card group px-5 py-3"
+            open={tasksOpen ?? openTasks.length <= 2}
+            onToggle={(e) => setTasksOpen(e.currentTarget.open)}
+          >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
               <span className="min-w-0 truncate">
-                <span className="font-medium">On your plate</span>
+                <span className="font-medium">Your tasks</span>
                 <span className="ml-2 text-soft">
-                  {openTasks.length} task{openTasks.length === 1 ? "" : "s"}
+                  {openTasks.length} added
                   {openTasks.length > 0 && openTasks.length <= 3 ? `: ${openTasks.map((t) => t.title).join(", ")}` : ""}
                 </span>
               </span>

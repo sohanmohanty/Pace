@@ -116,18 +116,18 @@ export function How() {
           determine the score below and the explanation of why each step was chosen.
         </p>
         <div className="mt-4 overflow-x-auto rounded-[1rem] border border-line" tabIndex={0} role="region" aria-label="Candidate scores">
-          <table className="w-full min-w-[40rem] text-[0.9rem]">
+          <table className="w-full text-[0.84rem] sm:min-w-[40rem] sm:text-[0.9rem]">
             <thead className="bg-surface-2 text-left text-[0.78rem] uppercase tracking-wider text-soft">
               <tr>
-                <th className="px-3 py-2 font-semibold">Candidate</th>
-                <th className="px-2 py-2 font-semibold">min</th>
-                <th className="px-2 py-2 font-semibold" title="due date, ×1.5">urg</th>
-                <th className="px-2 py-2 font-semibold" title="importance, ×1.2">imp</th>
-                <th className="px-2 py-2 font-semibold" title="message boost">msg</th>
-                <th className="px-2 py-2 font-semibold" title="capacity fit">fit</th>
-                <th className="px-2 py-2 font-semibold" title="quick win">qw</th>
-                <th className="px-2 py-2 font-semibold">score</th>
-                <th className="px-2 py-2 font-semibold">chosen</th>
+                <th className="px-2 py-2 font-semibold sm:px-3">Candidate</th>
+                <th className="hidden px-2 py-2 font-semibold sm:table-cell">min</th>
+                <th className="px-1.5 py-2 font-semibold sm:px-2" title="due date, ×1.5">urg</th>
+                <th className="px-1.5 py-2 font-semibold sm:px-2" title="importance, ×1.2">imp</th>
+                <th className="hidden px-2 py-2 font-semibold sm:table-cell" title="message boost">msg</th>
+                <th className="hidden px-2 py-2 font-semibold sm:table-cell" title="capacity fit">fit</th>
+                <th className="hidden px-2 py-2 font-semibold sm:table-cell" title="quick win">qw</th>
+                <th className="px-1.5 py-2 font-semibold sm:px-2">score</th>
+                <th className="hidden px-2 py-2 font-semibold sm:table-cell">chosen</th>
               </tr>
             </thead>
             <tbody>
@@ -136,18 +136,23 @@ export function How() {
                 const chosen = chosenKeys.has(key);
                 return (
                   <tr key={key} className={`border-t border-line ${chosen ? "bg-tint/60" : ""}`}>
-                    <td className="px-3 py-2">
+                    <td className="px-2 py-2 sm:px-3">
                       <span className="block font-medium">{c.title}</span>
                       <span className="block text-[0.8rem] text-soft">{tasks.find((t) => t.id === c.taskId)?.title}</span>
+                      {chosen && (
+                        <span className="mt-0.5 block text-[0.72rem] font-semibold uppercase tracking-wider text-good sm:hidden">
+                          chosen · {c.minutes} min
+                        </span>
+                      )}
                     </td>
-                    <td className="tabular px-2 py-2">{c.minutes}</td>
-                    <td className="tabular px-2 py-2">{c.factors.urgency}</td>
-                    <td className="tabular px-2 py-2">{c.factors.importance}</td>
-                    <td className="tabular px-2 py-2">{c.factors.communication || ""}</td>
-                    <td className="tabular px-2 py-2">{c.factors.fit}</td>
-                    <td className="tabular px-2 py-2">{c.factors.quickWin || ""}</td>
-                    <td className="tabular px-2 py-2 font-semibold">{c.score.toFixed(1)}</td>
-                    <td className="px-2 py-2">{chosen && <Chip tone="good">yes</Chip>}</td>
+                    <td className="tabular hidden px-2 py-2 sm:table-cell">{c.minutes}</td>
+                    <td className="tabular px-1.5 py-2 sm:px-2">{c.factors.urgency}</td>
+                    <td className="tabular px-1.5 py-2 sm:px-2">{c.factors.importance}</td>
+                    <td className="tabular hidden px-2 py-2 sm:table-cell">{c.factors.communication || ""}</td>
+                    <td className="tabular hidden px-2 py-2 sm:table-cell">{c.factors.fit}</td>
+                    <td className="tabular hidden px-2 py-2 sm:table-cell">{c.factors.quickWin || ""}</td>
+                    <td className="tabular px-1.5 py-2 font-semibold sm:px-2">{c.score.toFixed(1)}</td>
+                    <td className="hidden px-2 py-2 sm:table-cell">{chosen && <Chip tone="good">yes</Chip>}</td>
                   </tr>
                 );
               })}

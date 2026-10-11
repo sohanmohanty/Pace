@@ -135,16 +135,27 @@ export function Landing() {
             <li className="flex gap-2"><Check /> Choose a light, dark, or high-contrast theme. You can use Pace entirely with a keyboard.</li>
           </ul>
         </div>
-        <div className="card p-5">
+        <div className="card min-w-0 p-5">
           <Eyebrow>What AI planning uses</Eyebrow>
-          <pre className="mt-2 overflow-x-auto rounded-[0.875rem] bg-surface-2 p-3 text-[0.8rem] leading-relaxed text-soft" tabIndex={0} role="region" aria-label="Example of what is sent to the planner">{`{
-  "checkIn": { "dial": 45, "windows": ["evening"], "heavy": ["reading"] },
-  "tasks": [
-    { "title": "Biology lab report", "course": "Biology",
-      "dueDate": null, "estimatedMinutes": 120,
-      "steps": [ "Re-read the data table", "Draft the results" ] }
-  ],
-  "learned": [ "Biology work tends to take about 1.6x the estimate." ]
+          <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words rounded-[0.875rem] bg-surface-2 p-3 text-[0.8rem] leading-relaxed text-soft" tabIndex={0} role="region" aria-label="Example of what is sent to the planner">{`{
+  "checkIn": {
+    "dial": 45,
+    "windows": ["evening"],
+    "heavy": ["reading"]
+  },
+  "tasks": [{
+    "title": "Biology lab report",
+    "course": "Biology",
+    "dueDate": null,
+    "estimatedMinutes": 120,
+    "steps": [
+      "Re-read the data table",
+      "Draft the results"
+    ]
+  }],
+  "learned": [
+    "Biology work takes about 1.6x the estimate."
+  ]
 }`}</pre>
           <p className="mt-2 text-[0.9rem] text-soft">
             I exclude your task notes and profile name from planning requests. I do not keep a server copy of your tasks.

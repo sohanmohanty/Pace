@@ -47,7 +47,7 @@ export function PlanBuilder() {
     return (
       <div className="space-y-5 lg:mx-auto lg:max-w-xl">
         <PageHeader title="Today's plan" />
-        <EmptyState title="Nothing to plan yet" body="Add what's on your plate first. One line per thing is enough.">
+        <EmptyState title="Nothing to plan yet" body="Add your tasks first. One line per task is enough.">
           <Button size="lg" onClick={() => navigate("/tasks")}>
             Go to my tasks
           </Button>

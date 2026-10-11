@@ -62,7 +62,7 @@ export function Onboarding() {
           <h1 className="text-[1.8rem] leading-tight">Where do you want to start?</h1>
           <div className="space-y-2">
             <Button size="lg" disabled={busy} onClick={() => finish("/capture")}>
-              Add what's on my plate
+              Add my tasks
             </Button>
             <Button
               variant="soft"

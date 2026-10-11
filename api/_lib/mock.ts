@@ -100,7 +100,7 @@ export function mockExtract(req: ExtractRequest): ExtractResponse {
     sourceSpan: line,
     kind: /test|quiz|exam|practice|game|shift/i.test(line) ? "event" : "task"
   }));
-  return { items, note: items.length === 0 ? "I could not find anything that looked like an assignment." : "Dates were read relative to today; check the ones marked uncertain." };
+  return { items, note: items.length === 0 ? "No assignments could be identified in the submitted content." : "Dates were read relative to today; check the ones marked uncertain." };
 }
 
 function addDays(iso: string, n: number): string {

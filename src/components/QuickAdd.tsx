@@ -51,7 +51,7 @@ export function QuickAdd() {
           className="input mt-2 min-h-12"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="What's on your plate?"
+          placeholder="What do you need to do?"
           autoComplete="off"
         />
       </label>
